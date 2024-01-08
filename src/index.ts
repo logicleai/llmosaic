@@ -17,16 +17,9 @@ interface ProviderParams {
   providerType: ProviderType;
 }
 
-enum ProviderType {
-  OpenAI,
-  Ollama,
-}
-
-export function getHandler(
-  providerType: ProviderType,
-  mapping: Record<ProviderType, Handler>,
-): Handler | null {
-  return mapping[providerType] || null;
+export enum ProviderType {
+  OpenAI = 'openai',
+  Ollama = 'ollama',
 }
 
 export class Provider {
