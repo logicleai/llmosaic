@@ -9,6 +9,7 @@ import {
   ResultNotStreaming,
   ResultStreaming,
   IProviderWrapper,
+  ModelList,
 } from './types';
 
 interface ProviderParams {
@@ -26,6 +27,7 @@ export class Provider {
   private apiKey: string;
   private baseUrl: string;
   private providerType: ProviderType;
+
   private static PROVIDER_TYPE_HANDLER_MAPPINGS: Record<
     ProviderType,
     (apiKey: string, baseUrl: string) => IProviderWrapper
@@ -36,10 +38,27 @@ export class Provider {
       new OllamaWrapper(apiKey, baseUrl),
   };
 
+  private client: IProviderWrapper;
+
   constructor(params: ProviderParams) {
     this.apiKey = params.apiKey;
     this.baseUrl = params.baseUrl;
     this.providerType = params.providerType;
+    const clientCreationFunction =
+      Provider.PROVIDER_TYPE_HANDLER_MAPPINGS[this.providerType];
+
+    // Handle the case where there is no mapping for the given providerType
+    if (!clientCreationFunction) {
+      throw new Error(
+        `Provider not supported for provider type: ${this.providerType}`,
+      );
+    }
+    // Instantiate the correct provider wrapper
+    this.client = clientCreationFunction(this.apiKey, this.baseUrl);
+  }
+
+  async models():Promise<ModelList>{
+    return this.client.models();
   }
 
   async completion(
@@ -51,26 +70,13 @@ export class Provider {
   ): Promise<ResultStreaming>;
 
   async completion(params: HandlerParams): Promise<Result> {
-    const clientCreationFunction =
-      Provider.PROVIDER_TYPE_HANDLER_MAPPINGS[this.providerType];
-
-    // Handle the case where there is no mapping for the given providerType
-    if (!clientCreationFunction) {
-      throw new Error(
-        `Provider not supported for provider type: ${this.providerType}`,
-      );
-    }
-
-    // Instantiate the correct provider wrapper
-    const client = clientCreationFunction(this.apiKey, this.baseUrl);
-
     // Call the completions method on the handler with necessary params
     if (params.stream === true) {
-      return client.completions(
+      return this.client.completions(
         params as HandlerParamsStreaming & { stream: true },
       );
     } else {
-      return client.completions(params as HandlerParamsNotStreaming);
+      return this.client.completions(params as HandlerParamsNotStreaming);
     }
   }
 }

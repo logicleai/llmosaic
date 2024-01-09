@@ -88,6 +88,18 @@ export type HandlerParams = HandlerParamsStreaming | HandlerParamsNotStreaming;
 
 export type Handler = (params: HandlerParams) => Promise<Result>;
 
+export interface Model {
+  id: string;
+  object: string;
+  created: number;
+  owned_by: string;
+}
+
+export interface ModelList {
+  object: string;
+  data: Model[];
+}
+
 export interface IProviderWrapper {
   completions(
     params: HandlerParams & { stream: true },
@@ -95,4 +107,5 @@ export interface IProviderWrapper {
   completions(
     params: HandlerParams & { stream?: false },
   ): Promise<ResultNotStreaming>;
+  models(): Promise<ModelList>;
 }
