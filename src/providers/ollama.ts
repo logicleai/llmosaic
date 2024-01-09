@@ -5,6 +5,8 @@ import {
   ResultNotStreaming,
   Result,
   StreamingChunk,
+  Model,
+  ModelList,
 } from '../types';
 import { getUnixTimestamp } from '../utils/getUnixTimestamp';
 import { combinePrompts } from '../utils/combinePrompts';
@@ -43,7 +45,7 @@ class OllamaWrapper implements IProviderWrapper {
     };
   }
 
-  private toResponse(
+  private toCompletionResponse(
     content: string,
     model: string,
     prompt: string,
@@ -62,7 +64,33 @@ class OllamaWrapper implements IProviderWrapper {
     };
   }
 
-  private async *iterateResponse(
+// Function to convert the JSON response to a ModelList object
+private convertToModelList(response: any): ModelList {
+  // Create an empty array for the data property
+  const data: Model[] = [];
+
+  // Check if the response has a 'models' array
+  if (response && Array.isArray(response.models)) {
+    // Iterate over the models array and map each entry to a Model object
+    response.models.forEach((model: any) => {
+      const convertedModel: Model = {
+        id: model.name,
+        object: 'model',
+        created: Math.floor(new Date(model.modified_at).getTime() / 1000), // Convert the modified_at date string to a timestamp
+        owned_by: 'ollama'
+      };
+      data.push(convertedModel);
+    });
+  }
+
+  // Return the ModelList object with the 'object' property and the 'data' array
+  return {
+    object: 'list',
+    data: data
+  };
+}
+
+  private async *iterateGenerateResponse(
     response: Response,
     model: string,
     prompt: string,
@@ -89,7 +117,15 @@ class OllamaWrapper implements IProviderWrapper {
     }
   }
 
-  private async getOllamaResponse(
+  private async getOllamaTagsResponse(
+    baseUrl: string,
+  ): Promise<Response> {
+    return fetch(`${baseUrl}/api/tags`, {
+      method: 'GET',
+    });
+  }
+
+  private async getOllamaGenerateResponse(
     model: string,
     prompt: string,
     baseUrl: string,
@@ -106,19 +142,26 @@ class OllamaWrapper implements IProviderWrapper {
     });
   }
 
+  async models():Promise<ModelList>{
+    const res = await this.getOllamaTagsResponse(this.baseUrl);
+    return this.convertToModelList(res);
+  }
+
   public async completions(
     params: HandlerParams & { stream: true },
   ): Promise<ResultStreaming>;
+
   public async completions(
     params: HandlerParams & { stream?: false },
   ): Promise<ResultNotStreaming>;
+
   public async completions(
     params: HandlerParams & { stream?: boolean },
   ): Promise<Result> {
     const model = params.model;
     const prompt = combinePrompts(params.messages);
 
-    const res = await this.getOllamaResponse(model, prompt, this.baseUrl);
+    const res = await this.getOllamaGenerateResponse(model, prompt, this.baseUrl);
 
     if (!res.ok) {
       throw new Error(
@@ -127,12 +170,12 @@ class OllamaWrapper implements IProviderWrapper {
     }
 
     if (params.stream) {
-      return this.iterateResponse(res, model, prompt);
+      return this.iterateGenerateResponse(res, model, prompt);
     }
 
     const chunks: StreamingChunk[] = [];
 
-    for await (const chunk of this.iterateResponse(res, model, prompt)) {
+    for await (const chunk of this.iterateGenerateResponse(res, model, prompt)) {
       chunks.push(chunk);
     }
 
@@ -140,7 +183,7 @@ class OllamaWrapper implements IProviderWrapper {
       return (acc += chunk.choices[0].delta.content);
     }, '');
 
-    return this.toResponse(message, model, prompt);
+    return this.toCompletionResponse(message, model, prompt);
   }
 }
 
