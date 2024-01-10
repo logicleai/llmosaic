@@ -49,13 +49,9 @@ class OpenAIWrapper implements IProviderWrapper {
     } as ModelList;
   }
 
-  public async completions(
-    params: HandlerParams & { stream: true },
-  ): Promise<ResultStreaming>;
+  public async completions(params: HandlerParams & { stream: true }): Promise<ResultStreaming>;
 
-  public async completions(
-    params: HandlerParams & { stream?: false },
-  ): Promise<ResultNotStreaming>;
+  public async completions(params: HandlerParams & { stream?: false }): Promise<ResultNotStreaming>;
   
   public async completions(
     params: HandlerParams & { stream?: boolean },
