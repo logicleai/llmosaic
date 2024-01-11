@@ -144,7 +144,7 @@ private convertToModelList(response: any): ModelList {
 
   async models():Promise<ModelList>{
     const res = await this.getOllamaTagsResponse(this.baseUrl);
-    return this.convertToModelList(res);
+    return this.convertToModelList(await res.json());
   }
 
   public async completions(
