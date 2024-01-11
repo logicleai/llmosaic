@@ -21,6 +21,7 @@ interface ProviderParams {
 export enum ProviderType {
   OpenAI = 'openai',
   Ollama = 'ollama',
+  LocalAI = 'localai',
 }
 
 export class Provider {
@@ -36,6 +37,8 @@ export class Provider {
       new OpenAIWrapper(apiKey, baseUrl),
       [ProviderType.Ollama]: (apiKey, baseUrl) =>
       new OllamaWrapper(apiKey, baseUrl),
+      [ProviderType.LocalAI]: (apiKey, baseUrl) =>
+      new OpenAIWrapper(apiKey, baseUrl),
   };
 
   private client: IProviderWrapper;
