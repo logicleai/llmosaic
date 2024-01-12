@@ -13,31 +13,31 @@ import {
 const modelEnrichmentData: { [key: string]: { name: string; description: string; context_length: number; tokenizer: string; } } = {
   'gpt-4': {
     name: 'GPT-4',
-    description: 'This model can engage in casual conversations.',
+    description: 'Advanced multimodal model for generating text and code, excelling in complex problem-solving with a broad knowledge base.',
     context_length: 8192,
     tokenizer: 'openai'
   },
   'gpt-4-32k': {
     name: 'GPT-4 32K',
-    description: 'This model can engage in casual conversations.',
+    description: 'Enhanced GPT-4 with extended 32,768 token capacity, ideal for longer context applications while retaining high accuracy.',
     context_length: 32768,
     tokenizer: 'openai'
   },
   'gpt-4-1106-preview': {
     name: 'GPT-4 Turbo',
-    description: 'This model is great at processing and analyzing data.',
+    description: 'Latest GPT-4 model with a massive 128,000-token capacity, featuring advanced capabilities like improved instruction following and JSON mode.',
     context_length: 128000,
     tokenizer: 'openai'
   },
   'gpt-3.5-turbo': {
     name: 'GPT-3.5 Turbo',
-    description: 'This model is great at processing and analyzing data.',
+    description: ' Cost-effective GPT-3.5 model optimized for chat and traditional tasks, balancing performance and resource usage.',
     context_length: 4096,
     tokenizer: 'openai'
   },
   'gpt-3.5-turbo-1106': {
     name: 'GPT-3.5 Turbo 16K',
-    description: 'This model is great at processing and analyzing data.',
+    description: 'Upgraded GPT-3.5 Turbo with 16,385 token capacity, suitable for more extended context needs while maintaining efficient processing.',
     context_length: 16385,
     tokenizer: 'openai'
   },
