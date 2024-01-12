@@ -76,6 +76,10 @@ export interface HandlerParamsBase {
     | ChatCompletionCreateParams.FunctionCallOption;
 }
 
+export interface HandlerModelParams {
+  enrich?: true;
+}
+
 export interface HandlerParamsStreaming extends HandlerParamsBase {
   stream?: true;
 }
@@ -107,5 +111,7 @@ export interface IProviderWrapper {
   completions(
     params: HandlerParams & { stream?: false },
   ): Promise<ResultNotStreaming>;
-  models(): Promise<ModelList>;
+  models(
+    params: HandlerModelParams,
+  ): Promise<ModelList>;
 }

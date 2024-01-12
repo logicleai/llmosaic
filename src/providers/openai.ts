@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { IProviderWrapper, ModelList } from '../types';
 import {
+  HandlerModelParams,
   HandlerParams,
   ResultStreaming,
   ResultNotStreaming,
@@ -42,11 +43,12 @@ class OpenAIWrapper implements IProviderWrapper {
     }
   }
 
-  async models():Promise<ModelList>{
-    return {
+  async models(params: HandlerModelParams):Promise<ModelList>{
+    const data = {
       object: "string",
       data: (await this.openai.models.list()).data,
     } as ModelList;
+    return data
   }
 
   public async completions(params: HandlerParams & { stream: true }): Promise<ResultStreaming>;

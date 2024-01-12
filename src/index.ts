@@ -2,6 +2,7 @@ import OpenAIWrapper from './providers/openai';
 import OllamaWrapper from './providers/ollama';
 import {
   Handler,
+  HandlerModelParams,
   HandlerParams,
   HandlerParamsNotStreaming,
   HandlerParamsStreaming,
@@ -60,8 +61,10 @@ export class Provider {
     this.client = clientCreationFunction(this.apiKey, this.baseUrl);
   }
 
-  async models():Promise<ModelList>{
-    return this.client.models();
+  async models(
+    params: HandlerModelParams,
+  ):Promise<ModelList>{
+    return this.client.models(params);
   }
 
   async completion(
