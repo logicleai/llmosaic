@@ -1,12 +1,48 @@
 import OpenAI from 'openai';
-import { IProviderWrapper, ModelList } from '../types';
+import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
 import {
   HandlerModelParams,
   HandlerParams,
   ResultStreaming,
   ResultNotStreaming,
   Result,
+  Model,
+  EnrichedModel,
 } from '../types';
+
+const modelEnrichmentData: { [key: string]: { name: string; description: string; context_length: number; tokenizer: string; } } = {
+  'gpt-4': {
+    name: 'GPT-4',
+    description: 'This model can engage in casual conversations.',
+    context_length: 8192,
+    tokenizer: 'openai'
+  },
+  'gpt-4-32k': {
+    name: 'GPT-4 32K',
+    description: 'This model can engage in casual conversations.',
+    context_length: 32768,
+    tokenizer: 'openai'
+  },
+  'gpt-4-1106-preview': {
+    name: 'GPT-4 Turbo',
+    description: 'This model is great at processing and analyzing data.',
+    context_length: 128000,
+    tokenizer: 'openai'
+  },
+  'gpt-3.5-turbo': {
+    name: 'GPT-3.5 Turbo',
+    description: 'This model is great at processing and analyzing data.',
+    context_length: 4096,
+    tokenizer: 'openai'
+  },
+  'gpt-3.5-turbo-1106': {
+    name: 'GPT-3.5 Turbo 16K',
+    description: 'This model is great at processing and analyzing data.',
+    context_length: 16385,
+    tokenizer: 'openai'
+  },
+};
+
 
 class OpenAIWrapper implements IProviderWrapper {
   private openai: OpenAI;
@@ -43,12 +79,40 @@ class OpenAIWrapper implements IProviderWrapper {
     }
   }
 
-  async models(params: HandlerModelParams):Promise<ModelList>{
+  private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
+    const enrichedData = standardModelList.data
+      .filter((model: Model) => modelEnrichmentData.hasOwnProperty(model.id))
+      .map((model: Model): EnrichedModel => {
+        const enrichmentData = modelEnrichmentData[model.id];
+        return {
+          ...model,
+          ...enrichmentData,
+        };
+      });
+
+    return {
+      object: standardModelList.object,
+      data: enrichedData,
+    };
+  }
+
+  async models(params: HandlerModelParams & { enrich: true }):Promise<EnrichedModelList>;
+
+  async models(params: HandlerModelParams & { enrich?: false }):Promise<StandardModelList>;
+
+  async models(
+    params: HandlerModelParams & { enrich?: boolean },
+  ):Promise<ModelList>{
     const data = {
       object: "string",
       data: (await this.openai.models.list()).data,
     } as ModelList;
-    return data
+    // Check if the 'enrich' parameter is true
+    if (params.enrich) {
+      return this.enrichModels(data);
+    } else {
+      return data;
+    }
   }
 
   public async completions(params: HandlerParams & { stream: true }): Promise<ResultStreaming>;

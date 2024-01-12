@@ -7,6 +7,10 @@ import {
   StreamingChunk,
   Model,
   ModelList,
+  HandlerModelParams,
+  EnrichedModel,
+  EnrichedModelList,
+  StandardModelList
 } from '../types';
 import { getUnixTimestamp } from '../utils/getUnixTimestamp';
 import { combinePrompts } from '../utils/combinePrompts';
@@ -142,7 +146,13 @@ private convertToModelList(response: any): ModelList {
     });
   }
 
-  async models():Promise<ModelList>{
+  async models(params: HandlerModelParams & { enrich: true }):Promise<EnrichedModelList>;
+
+  async models(params: HandlerModelParams & { enrich?: false }):Promise<StandardModelList>;
+
+  async models(
+    params: HandlerModelParams & { enrich?: boolean },
+  ):Promise<ModelList>{
     const res = await this.getOllamaTagsResponse(this.baseUrl);
     return this.convertToModelList(await res.json());
   }

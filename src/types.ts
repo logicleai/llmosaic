@@ -76,10 +76,6 @@ export interface HandlerParamsBase {
     | ChatCompletionCreateParams.FunctionCallOption;
 }
 
-export interface HandlerModelParams {
-  enrich?: true;
-}
-
 export interface HandlerParamsStreaming extends HandlerParamsBase {
   stream?: true;
 }
@@ -92,6 +88,20 @@ export type HandlerParams = HandlerParamsStreaming | HandlerParamsNotStreaming;
 
 export type Handler = (params: HandlerParams) => Promise<Result>;
 
+export interface HandlerModelParamsBase {
+  enrich?: boolean | null;
+}
+
+export interface HandlerModelParamsEnriched extends HandlerModelParamsBase {
+  enrich?: true;
+}
+
+export interface HandlerModelParamsStandard extends HandlerModelParamsBase {
+  enrich?: false;
+}
+
+export type HandlerModelParams = HandlerModelParamsEnriched | HandlerModelParamsStandard;
+
 export interface Model {
   id: string;
   object: string;
@@ -99,19 +109,41 @@ export interface Model {
   owned_by: string;
 }
 
-export interface ModelList {
+export interface EnrichedModelCapabilities {
+  vision: boolean
+  functions: string
+}
+
+export interface EnrichedModel extends Model{
+  name: string
+  description: string
+  context_length: number
+  tokenizer: string
+}
+
+export interface StandardModelList {
   object: string;
   data: Model[];
 }
 
+export interface EnrichedModelList {
+  object: string;
+  data: EnrichedModel[];
+}
+
+export type ModelList = StandardModelList | EnrichedModelList;
+
 export interface IProviderWrapper {
+  models(
+    params: HandlerModelParams & { enrich: true },
+  ): Promise<EnrichedModelList>;
+  models(
+    params: HandlerModelParams & { enrich?: false },
+  ): Promise<StandardModelList>;
   completions(
     params: HandlerParams & { stream: true },
   ): Promise<ResultStreaming>;
   completions(
     params: HandlerParams & { stream?: false },
   ): Promise<ResultNotStreaming>;
-  models(
-    params: HandlerModelParams,
-  ): Promise<ModelList>;
 }

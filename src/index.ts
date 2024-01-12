@@ -11,6 +11,11 @@ import {
   ResultStreaming,
   IProviderWrapper,
   ModelList,
+  EnrichedModelList,
+  StandardModelList,
+  Model,
+  HandlerModelParamsEnriched,
+  HandlerModelParamsStandard,
 } from './types';
 
 interface ProviderParams {
@@ -61,10 +66,22 @@ export class Provider {
     this.client = clientCreationFunction(this.apiKey, this.baseUrl);
   }
 
+  private enrichModels(modelList: ModelList): ModelList {
+    return modelList;
+  }
+
+  async models(params: HandlerModelParamsEnriched & { enrich: true }):Promise<EnrichedModelList>;
+
+  async models(params: HandlerModelParamsStandard & { enrich?: false }):Promise<StandardModelList>;
+
   async models(
     params: HandlerModelParams,
   ):Promise<ModelList>{
-    return this.client.models(params);
+    if (params.enrich) {
+      return this.client.models(params as HandlerModelParamsEnriched & { enrich: true });
+    } else {
+      return this.client.models(params as HandlerModelParamsStandard);;
+    }
   }
 
   async completion(
