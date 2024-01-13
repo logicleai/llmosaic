@@ -20,7 +20,7 @@ import {
 
 interface ProviderParams {
   apiKey: string;
-  baseUrl: string;
+  baseUrl?: string;
   providerType: ProviderType;
 }
 
@@ -32,13 +32,10 @@ export enum ProviderType {
 
 export class Provider {
   private apiKey: string;
-  private baseUrl: string;
+  private baseUrl: string | undefined;
   private providerType: ProviderType;
 
-  private static PROVIDER_TYPE_HANDLER_MAPPINGS: Record<
-    ProviderType,
-    (apiKey: string, baseUrl: string) => IProviderWrapper
-  > = {
+  private static PROVIDER_TYPE_HANDLER_MAPPINGS: Record<ProviderType,(apiKey: string, baseUrl: string | undefined) => IProviderWrapper> = {
       [ProviderType.OpenAI]: (apiKey, baseUrl) =>
       new OpenAIWrapper(apiKey, baseUrl),
       [ProviderType.Ollama]: (apiKey, baseUrl) =>
@@ -51,7 +48,7 @@ export class Provider {
 
   constructor(params: ProviderParams) {
     this.apiKey = params.apiKey;
-    this.baseUrl = params.baseUrl;
+    this.baseUrl = params.baseUrl ?? undefined;
     this.providerType = params.providerType;
     const clientCreationFunction =
       Provider.PROVIDER_TYPE_HANDLER_MAPPINGS[this.providerType];
