@@ -1,8 +1,7 @@
 import OpenAIWrapper from './providers/openai';
 import AzureWrapper from './providers/azure';
-import OllamaWrapper from './providers/ollama';
+//import OllamaWrapper from './providers/ollama';
 import {
-  Handler,
   HandlerModelParams,
   HandlerParams,
   HandlerParamsNotStreaming,
@@ -28,7 +27,7 @@ interface ProviderParams {
 export enum ProviderType {
   OpenAI = 'openai',
   Azure = 'azure',
-  Ollama = 'ollama',
+/*  Ollama = 'ollama',*/
   LocalAI = 'localai',
 }
 
@@ -42,8 +41,8 @@ export class Provider {
       new OpenAIWrapper(apiKey, baseUrl),
       [ProviderType.Azure]: (apiKey, baseUrl) =>
       new AzureWrapper(apiKey, baseUrl),
-      [ProviderType.Ollama]: (apiKey, baseUrl) =>
-      new OllamaWrapper(apiKey, baseUrl),
+      /*[ProviderType.Ollama]: (apiKey, baseUrl) =>
+      new OllamaWrapper(apiKey, baseUrl),*/
       [ProviderType.LocalAI]: (apiKey, baseUrl) =>
       new OpenAIWrapper(apiKey, baseUrl),
   };
@@ -100,7 +99,9 @@ export class Provider {
         params as HandlerParamsStreaming & { stream: true },
       );
     } else {
-      return this.client.completions(params as HandlerParamsNotStreaming);
+      return this.client.completions(
+        params as HandlerParamsNotStreaming & { stream: false }
+      );
     }
   }
 }

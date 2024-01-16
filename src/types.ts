@@ -1,10 +1,10 @@
 import { ChatCompletionCreateParams, ChatCompletionCreateParamsNonStreaming, ChatCompletionCreateParamsStreaming } from 'openai/resources/chat/completions';
 
-import { ChatCompletion, ChatCompletionChunk } from 'openai/src/resources/chat/completions'
+import { ChatCompletion, ChatCompletionChunk } from 'openai/resources/chat/completions'
 
 import { APIPromise } from 'openai/src/core';
 
-import { Stream } from 'openai/src/streaming';
+import { Stream } from 'openai/streaming';
 
 export type Role = 'system' | 'user' | 'assistant' | 'function';
 
@@ -61,7 +61,11 @@ export type ResultStreaming = APIPromise<Stream<ChatCompletionChunk>>;
 
 export type Result = ResultNotStreaming | ResultStreaming;
 
-export type HandlerParams = ChatCompletionCreateParamsNonStreaming | ChatCompletionCreateParamsStreaming;
+export type HandlerParamsStreaming = ChatCompletionCreateParamsStreaming;
+
+export type HandlerParamsNotStreaming = ChatCompletionCreateParamsNonStreaming;
+
+export type HandlerParams = HandlerParamsStreaming | HandlerParamsNotStreaming;
 
 export type Handler = (params: HandlerParams) => Promise<Result>;
 

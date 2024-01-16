@@ -49,7 +49,7 @@ class AzureWrapper implements IProviderWrapper {
 
   constructor(apiKey?: string, baseUrl?: string) {
     const finalApiKey = apiKey ?? process.env.OPENAI_API_KEY;
-    const finalBaseUrl = baseUrl ?? 'https://andrai-azure-oai.openai.azure.com';
+    const finalBaseUrl = baseUrl ?? 'https://andrai-azure-oai.openai.azure.com/openai/deployments/gpt-4';
     const apiVersion = '2023-07-01-preview';
 
     this.openai = new OpenAI({
@@ -60,7 +60,7 @@ class AzureWrapper implements IProviderWrapper {
     });
   }
 
-  private async *toStreamingResponse(
+  /*private async *toStreamingResponse(
     response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>,
   ): ResultStreaming {
     for await (const chunk of response) {
@@ -80,7 +80,7 @@ class AzureWrapper implements IProviderWrapper {
         }),
       };
     }
-  }
+  }*/
 
   private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
     const enrichedData = standardModelList.data
@@ -131,7 +131,7 @@ class AzureWrapper implements IProviderWrapper {
         ...params,
         stream: params.stream,
       });
-      return this.toStreamingResponse(response);
+      return response;
     } else {
       // Process non-streaming responses
       const response = await this.openai.chat.completions.create({
