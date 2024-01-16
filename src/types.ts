@@ -1,4 +1,10 @@
-import { ChatCompletionCreateParams } from 'openai/resources/chat/completions';
+import { ChatCompletionCreateParams, ChatCompletionCreateParamsNonStreaming, ChatCompletionCreateParamsStreaming } from 'openai/resources/chat/completions';
+
+import { ChatCompletion, ChatCompletionChunk } from 'openai/src/resources/chat/completions'
+
+import { APIPromise } from 'openai/src/core';
+
+import { Stream } from 'openai/src/streaming';
 
 export type Role = 'system' | 'user' | 'assistant' | 'function';
 
@@ -49,42 +55,13 @@ export interface ConsistentResponse {
   usage?: ConsistentResponseUsage;
 }
 
-export type ResultNotStreaming = ConsistentResponse;
+export type ResultNotStreaming = APIPromise<ChatCompletion>;
 
-export interface StreamingChunk extends Omit<ConsistentResponse, 'choices'> {
-  choices: ConsistentResponseStreamingChoice[];
-}
-
-export type ResultStreaming = AsyncIterable<StreamingChunk>;
+export type ResultStreaming = APIPromise<Stream<ChatCompletionChunk>>;
 
 export type Result = ResultNotStreaming | ResultStreaming;
 
-export interface HandlerParamsBase {
-  model: string;
-  messages: Message[];
-  stream?: boolean | null;
-  temperature?: number | null;
-  top_p?: number | null;
-  stop?: string | null | string[];
-  presence_penalty?: number | null;
-  n?: number | null;
-  max_tokens?: number | null;
-  functions?: ChatCompletionCreateParams.Function[];
-  function_call?:
-    | 'none'
-    | 'auto'
-    | ChatCompletionCreateParams.FunctionCallOption;
-}
-
-export interface HandlerParamsStreaming extends HandlerParamsBase {
-  stream?: true;
-}
-
-export interface HandlerParamsNotStreaming extends HandlerParamsBase {
-  stream?: false;
-}
-
-export type HandlerParams = HandlerParamsStreaming | HandlerParamsNotStreaming;
+export type HandlerParams = ChatCompletionCreateParamsNonStreaming | ChatCompletionCreateParamsStreaming;
 
 export type Handler = (params: HandlerParams) => Promise<Result>;
 

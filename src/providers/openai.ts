@@ -57,7 +57,7 @@ class OpenAIWrapper implements IProviderWrapper {
     });
   }
 
-  private async *toStreamingResponse(
+  /*private async *toStreamingResponse(
     response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>,
   ): ResultStreaming {
     for await (const chunk of response) {
@@ -77,7 +77,7 @@ class OpenAIWrapper implements IProviderWrapper {
         }),
       };
     }
-  }
+  }*/
 
   private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
     const enrichedData = standardModelList.data
@@ -128,7 +128,7 @@ class OpenAIWrapper implements IProviderWrapper {
         ...params,
         stream: params.stream,
       });
-      return this.toStreamingResponse(response);
+      return response;
     } else {
       // Process non-streaming responses
       const response = await this.openai.chat.completions.create({

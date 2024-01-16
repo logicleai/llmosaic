@@ -49,8 +49,8 @@ class AzureWrapper implements IProviderWrapper {
 
   constructor(apiKey?: string, baseUrl?: string) {
     const finalApiKey = apiKey ?? process.env.OPENAI_API_KEY;
-    const finalBaseUrl = baseUrl ?? 'https://andrai-azure-oai.openai.azure.com/gpt-4';
-    const apiVersion = '2023-06-01-preview';
+    const finalBaseUrl = baseUrl ?? 'https://andrai-azure-oai.openai.azure.com';
+    const apiVersion = '2023-07-01-preview';
 
     this.openai = new OpenAI({
       apiKey: finalApiKey,
