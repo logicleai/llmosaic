@@ -95,13 +95,13 @@ class AzureTest {
 }
 
 async function testAll(){
-    const apiKeyOAI = "";
+    const apiKeyOAI = process.env.OPENAI_API_KEY || "";
     const openAIProvider = new OpenAITest(apiKeyOAI);
     await openAIProvider.testOpenAI();
     
-    const apiKeyAzure = "";
-    const azureProvider = new AzureTest(apiKeyAzure);
-    await azureProvider.testAzure();
+    //const apiKeyAzure = process.env.AZURE_API_KEY || "";
+    //const azureProvider = new AzureTest(apiKeyAzure);
+    //await azureProvider.testAzure();
 }
 
 testAll()
