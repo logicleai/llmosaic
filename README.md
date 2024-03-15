@@ -11,3 +11,8 @@ git clone https://github.com/enricobellato/llmosaic.git
 ```
 npm install
 ```
+
+### Build the project
+```
+npm run build
+```
