@@ -22,43 +22,80 @@ import { ChatCompletion, ChatCompletionChunk } from 'openai/resources/chat/compl
 const modelEnrichmentData: { [key: string]: { name: string; description: string; context_length: number; tokenizer: string; } } = {
   'claude-3-opus-20240229': {
     name: 'Claude 3 Opus',
-    description: 'Latest GPT-4 model with a massive 128,000-token capacity, featuring advanced capabilities like improved instruction following and JSON mode.',
+    description: 'Most powerful model for highly complex tasks',
     context_length: 200000,
     tokenizer: 'openai'
   },
   'claude-3-sonnet-20240229': {
     name: 'Claude 3 Sonnet',
-    description: 'Advanced multimodal model for generating text and code, excelling in complex problem-solving with a broad knowledge base.',
+    description: 'Ideal balance of intelligence and speed for enterprise workloads',
     context_length: 200000,
     tokenizer: 'openai'
   },
   'claude-3-haiku-20240307': {
     name: 'Claude 3 Haiku',
-    description: 'Enhanced GPT-4 with extended 32,768 token capacity, ideal for longer context applications while retaining high accuracy.',
+    description: 'Fastest and most compact model for near-instant responsiveness',
     context_length: 200000,
     tokenizer: 'openai'
   },
   'claude-2.1': {
     name: 'Claude 2.1',
-    description: ' Cost-effective GPT-3.5 model optimized for chat and traditional tasks, balancing performance and resource usage.',
+    description: 'Updated version of Claude 2 with improved accuracy',
     context_length: 200000,
     tokenizer: 'openai'
   },
   'claude-2.0': {
     name: 'Claude 2',
-    description: ' Cost-effective GPT-3.5 model optimized for chat and traditional tasks, balancing performance and resource usage.',
+    description: 'Predecessor to Claude 3, offering strong all-round performance',
     context_length: 100000,
     tokenizer: 'openai'
   },
   'claude-instant-1.2': {
     name: 'Claude Instant 1.2',
-    description: ' Cost-effective GPT-3.5 model optimized for chat and traditional tasks, balancing performance and resource usage.',
+    description: 'Our cheapest small and fast model, a predecessor of Claude Haiku.',
     context_length: 100000,
     tokenizer: 'openai'
   },
 };
 
-const modelData
+const modelStandardData: Model[] = [
+  {
+    id: 'claude-3-opus-20240229',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'system'
+  },
+  {
+    id: 'claude-3-sonnet-20240229',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'system'
+  },
+  {
+    id: 'claude-3-haiku-20240307',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'system'
+  },
+  {
+    id: 'claude-2.1',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'system'
+  },
+  {
+    id: 'claude-2.0',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'system'
+  },
+  {
+    id: 'claude-instant-1.2',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'system'
+  },
+];
 
 class AnthropicWrapper implements IProviderWrapper {
   private client: Anthropic;
@@ -126,7 +163,7 @@ class AnthropicWrapper implements IProviderWrapper {
     stream: AsyncIterable<Anthropic.Completion>,
   ): ResultStreaming {
     for await (const chunk of stream) {
-      yield toStreamingChunk(chunk);
+      yield this.toStreamingChunk(chunk);
     }
   }
 
@@ -156,7 +193,7 @@ class AnthropicWrapper implements IProviderWrapper {
   ):Promise<ModelList>{
     const data = {
       object: "string",
-      data: (await this.client.).data,
+      data: modelStandardData,
     } as ModelList;
     // Check if the 'enrich' parameter is true
     if (params.enrich) {

@@ -31,7 +31,7 @@ const modelEnrichmentData: { [key: string]: { name: string; description: string;
   },
   'gpt-3.5-turbo': {
     name: 'GPT-3.5 Turbo',
-    description: ' Cost-effective GPT-3.5 model optimized for chat and traditional tasks, balancing performance and resource usage.',
+    description: 'Cost-effective GPT-3.5 model optimized for chat and traditional tasks, balancing performance and resource usage.',
     context_length: 16385,
     tokenizer: 'openai'
   }
