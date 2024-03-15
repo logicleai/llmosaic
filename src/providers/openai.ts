@@ -51,28 +51,6 @@ class OpenAIWrapper implements IProviderWrapper {
     });
   }
 
-  /*private async *toStreamingResponse(
-    response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>,
-  ): ResultStreaming {
-    for await (const chunk of response) {
-      yield {
-        model: chunk.model,
-        created: chunk.created,
-        choices: chunk.choices.map((openAIChoice) => {
-          return {
-            delta: {
-              content: openAIChoice.delta.content,
-              role: openAIChoice.delta.role,
-              function_call: openAIChoice.delta.function_call,
-            },
-            index: openAIChoice.index,
-            finish_reason: openAIChoice.finish_reason,
-          };
-        }),
-      };
-    }
-  }*/
-
   private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
     const enrichedData = standardModelList.data
       .filter((model: Model) => modelEnrichmentData.hasOwnProperty(model.id))
