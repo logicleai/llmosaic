@@ -8,23 +8,24 @@ async function main() {
   const message = await anthropic.messages.create({
     max_tokens: 1024,
     messages: [
-      {
-        role: 'user',
-        content: 'Hello, Claude'
-      },
-      {
+        {
+          role: 'user',
+          content: 'Hello, Claude'
+        },
+        {
           role: 'assistant',
           content: "Hello! It's nice to meet you. How can I assist you today?"
-      },
-      {
+        },
+        {
           role: 'user',
           content: 'Who are you?'
-      }
+        }
     ],
     model: 'claude-3-opus-20240229',
   });
 
-  console.log(message.content[0].text);
+  console.log(message);
+  console.log(message.content[0]);
 }
 
 main();

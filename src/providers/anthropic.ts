@@ -115,7 +115,7 @@ class AnthropicWrapper implements IProviderWrapper {
     return `${Anthropic.HUMAN_PROMPT} ${textsCombined}${Anthropic.AI_PROMPT}`;
   }
   
-  private toFinishReson(string: string): FinishReason {
+  private toFinishReson(string: string | null): FinishReason {
     if (string === 'max_tokens') {
       return 'length';
     }
@@ -132,11 +132,15 @@ class AnthropicWrapper implements IProviderWrapper {
       model: anthropicResponse.model,
       object: 'chat.completion',
       created: getUnixTimestamp(),
-      usage: toUsage(prompt, anthropicResponse.completion),
+      usage: {
+        prompt_tokens: anthropicResponse.usage.input_tokens,
+        completion_tokens: anthropicResponse.usage.output_tokens,
+        total_tokens: (anthropicResponse.usage.input_tokens + anthropicResponse.usage.output_tokens)
+      },
       choices: [
         {
           message: {
-            content: anthropicResponse.completion,
+            content: anthropicResponse.content[0].text,
             role: 'assistant',
           },
           logprobs: null,
@@ -146,6 +150,7 @@ class AnthropicWrapper implements IProviderWrapper {
       ],
     };
   }
+  
   private toStreamingChunk(
     anthropicResponse: Anthropic.Completion,
   ): StreamingChunk {
