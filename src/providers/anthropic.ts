@@ -128,7 +128,9 @@ class AnthropicWrapper implements IProviderWrapper {
     prompt: string,
   ): ChatCompletion {
     return {
+      id: anthropicResponse.id,
       model: anthropicResponse.model,
+      object: 'chat.completion',
       created: getUnixTimestamp(),
       usage: toUsage(prompt, anthropicResponse.completion),
       choices: [
@@ -137,6 +139,7 @@ class AnthropicWrapper implements IProviderWrapper {
             content: anthropicResponse.completion,
             role: 'assistant',
           },
+          logprobs: null,
           finish_reason: this.toFinishReson(anthropicResponse.stop_reason),
           index: 0,
         },
@@ -152,7 +155,7 @@ class AnthropicWrapper implements IProviderWrapper {
       choices: [
         {
           delta: { content: anthropicResponse.completion, role: 'assistant' },
-          finish_reason: toFinishReson(anthropicResponse.stop_reason),
+          finish_reason: this.toFinishReson(anthropicResponse.stop_reason),
           index: 0,
         },
       ],
