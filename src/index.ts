@@ -17,6 +17,7 @@ import {
   HandlerModelParamsEnriched,
   HandlerModelParamsStandard,
 } from './types';
+import AnthropicWrapper from './providers/anthropic';
 
 interface ProviderParams {
   apiKey: string;
@@ -26,6 +27,7 @@ interface ProviderParams {
 
 export enum ProviderType {
   OpenAI = 'openai',
+  Anthropic = 'anthropic',
   Azure = 'azure',
 /*  Ollama = 'ollama',*/
   LocalAI = 'localai',
@@ -39,6 +41,8 @@ export class Provider {
   private static PROVIDER_TYPE_HANDLER_MAPPINGS: Record<ProviderType,(apiKey: string, baseUrl: string | undefined) => IProviderWrapper> = {
       [ProviderType.OpenAI]: (apiKey, baseUrl) =>
       new OpenAIWrapper(apiKey, baseUrl),
+      [ProviderType.Anthropic]: (apiKey, baseUrl) =>
+      new AnthropicWrapper(apiKey, baseUrl),
       [ProviderType.Azure]: (apiKey, baseUrl) =>
       new AzureWrapper(apiKey, baseUrl),
       /*[ProviderType.Ollama]: (apiKey, baseUrl) =>
