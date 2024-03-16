@@ -110,9 +110,24 @@ class AnthropicWrapper implements IProviderWrapper {
     });
   }
 
-  private toAnthropicPrompt(messages: Message[]): string {
-    const textsCombined = combinePrompts(messages);
-    return `${Anthropic.HUMAN_PROMPT} ${textsCombined}${Anthropic.AI_PROMPT}`;
+  private toAnthropicPrompt(messages: HandlerParams[]): Anthropic.Messages.MessageParam[] {
+    return messages.map((message): Anthropic.Messages.MessageParam => {
+      // Filter out messages with null content or transform them as needed
+      if (message.content === null) {
+        // If it's acceptable to convert null to an empty string, do so here
+        message.content = '';
+        // Or if it's acceptable to omit messages with null content, return a placeholder 
+        // that should be filtered out in a subsequent step (not shown here).
+      }
+      
+      // Convert string content to TextBlock, as per the expected format
+      const content = typeof message.content === 'string' ? [{ text: message.content }] : message.content;
+    
+      return {
+        content: content as Array<Anthropic.Messages.TextBlock | Anthropic.Messages.ImageBlockParam>, // Cast here assures the type matches
+        role: message.role as 'user' | 'assistant', // Assuming all message roles are 'user' or 'assistant'
+      };
+    }).filter((param) => param.content !== null); // In case we decided to filter out null contents
   }
   
   private toFinishReson(string: string | null): FinishReason {
@@ -124,8 +139,7 @@ class AnthropicWrapper implements IProviderWrapper {
   }
   
   private toResponse(
-    anthropicResponse: Anthropic.Message,
-    prompt: string,
+    anthropicResponse: Anthropic.Message
   ): ChatCompletion {
     return {
       id: anthropicResponse.id,
@@ -233,11 +247,11 @@ class AnthropicWrapper implements IProviderWrapper {
       // Process non-streaming responses
       const response = await this.client.messages.create({
         max_tokens: 200000,
-        messages: [{ role: 'user', content: 'Hello, Claude' }],
+        messages: this.toAnthropicPrompt(params.messages),
         model: params.model,
         stream: false,
       });
-      return this.toResponse(response, prompt);
+      return this.toResponse(response);
     }
   }
 }
