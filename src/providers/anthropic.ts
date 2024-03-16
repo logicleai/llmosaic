@@ -100,7 +100,7 @@ class AnthropicWrapper implements IProviderWrapper {
   private client: Anthropic;
 
   constructor(apiKey?: string, baseUrl?: string) {
-    const finalApiKey = apiKey ?? process.env.OPENAI_API_KEY;
+    const finalApiKey = apiKey ?? process.env.ANTHROPIC_API_KEY;
     const finalBaseUrl = baseUrl ?? 'https://api.anthropic.com';
 
     this.client = new Anthropic({
