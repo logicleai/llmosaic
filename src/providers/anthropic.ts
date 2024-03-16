@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
 import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
 import {
@@ -13,11 +14,9 @@ import {
   Message,
 } from '../types';
 
-import { toUsage } from '../utils/toUsage';
-import { combinePrompts } from '../utils/combinePrompts';
 import { getUnixTimestamp } from '../utils/getUnixTimestamp';
 
-import { ChatCompletion, ChatCompletionChunk } from 'openai/resources/chat/completions'
+import { ChatCompletion } from 'openai/resources/chat/completions'
 
 const modelEnrichmentData: { [key: string]: { name: string; description: string; context_length: number; tokenizer: string; } } = {
   'claude-3-opus-20240229': {
@@ -110,7 +109,7 @@ class AnthropicWrapper implements IProviderWrapper {
     });
   }
 
-  private toAnthropicPrompt(messages: HandlerParams[]): Anthropic.Messages.MessageParam[] {
+  private toAnthropicPrompt(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): Anthropic.Messages.MessageParam[] {
     return messages.map((message): Anthropic.Messages.MessageParam => {
       // Filter out messages with null content or transform them as needed
       if (message.content === null) {
@@ -165,7 +164,7 @@ class AnthropicWrapper implements IProviderWrapper {
     };
   }
   
-  private toStreamingChunk(
+  /*private toStreamingChunk(
     anthropicResponse: Anthropic.Completion,
   ): StreamingChunk {
     return {
@@ -179,15 +178,15 @@ class AnthropicWrapper implements IProviderWrapper {
         },
       ],
     };
-  }
+  }*/
   
-  private async* toStreamingResponse(
+  /*private async* toStreamingResponse(
     stream: AsyncIterable<Anthropic.Completion>,
   ): ResultStreaming {
     for await (const chunk of stream) {
       yield this.toStreamingChunk(chunk);
     }
-  }
+  }*/
 
   private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
     const enrichedData = standardModelList.data
@@ -236,13 +235,16 @@ class AnthropicWrapper implements IProviderWrapper {
     const prompt = this.toAnthropicPrompt(params.messages);
     if (params.stream) {
       // Process streaming responses
-      const response = await this.client.messages.create({
+      /*const response = await this.client.messages.create({
         max_tokens: 200000,
         messages: [{ role: 'user', content: 'Hello, Claude' }],
         model: params.model,
         stream: true
-      });
-      return this.toStreamingResponse(response);
+      });*/
+      const EMPTY_STREAM = {
+      } as Promise<ResultNotStreaming>;
+      
+      return EMPTY_STREAM;
     } else {
       // Process non-streaming responses
       const response = await this.client.messages.create({
