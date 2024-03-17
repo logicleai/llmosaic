@@ -248,8 +248,8 @@ class AnthropicWrapper implements IProviderWrapper {
     } else {
       // Process non-streaming responses
       const response = await this.client.messages.create({
-        max_tokens: 200000,
-        messages: this.toAnthropicPrompt(params.messages),
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: 'Hello, Claude' }], //this.toAnthropicPrompt(params.messages),
         model: params.model,
         stream: false,
       });
