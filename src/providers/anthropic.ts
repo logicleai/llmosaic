@@ -118,12 +118,9 @@ class AnthropicWrapper implements IProviderWrapper {
         // Or if it's acceptable to omit messages with null content, return a placeholder 
         // that should be filtered out in a subsequent step (not shown here).
       }
-      
-      // Convert string content to TextBlock, as per the expected format
-      const content = typeof message.content === 'string' ? [{ text: message.content }] : message.content;
     
       return {
-        content: content as Array<Anthropic.Messages.TextBlock | Anthropic.Messages.ImageBlockParam>, // Cast here assures the type matches
+        content: message.content as string, // Cast here assures the type matches
         role: message.role as 'user' | 'assistant', // Assuming all message roles are 'user' or 'assistant'
       };
     }).filter((param) => param.content !== null); // In case we decided to filter out null contents
@@ -249,7 +246,7 @@ class AnthropicWrapper implements IProviderWrapper {
       // Process non-streaming responses
       const response = await this.client.messages.create({
         max_tokens: 4096,
-        messages: [{ role: 'user', content: 'Hello, Claude' }], //this.toAnthropicPrompt(params.messages),
+        messages: this.toAnthropicPrompt(params.messages),
         model: params.model,
         stream: false,
       });
