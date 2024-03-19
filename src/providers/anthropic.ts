@@ -232,12 +232,12 @@ class AnthropicWrapper implements IProviderWrapper {
     const prompt = this.toAnthropicPrompt(params.messages);
     if (params.stream) {
       // Process streaming responses
-      /*const response = await this.client.messages.create({
+      const response = await this.client.messages.create({
         max_tokens: 200000,
         messages: [{ role: 'user', content: 'Hello, Claude' }],
         model: params.model,
         stream: true
-      });*/
+      });
       const EMPTY_STREAM = {
       } as Promise<ResultNotStreaming>;
       
