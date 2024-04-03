@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 
+import { Stream } from 'openai/streaming';
+
 import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
 import {
   HandlerModelParams,
@@ -10,8 +12,6 @@ import {
   Result,
   Model,
   EnrichedModel,
-  FinishReason,
-  Message,
 } from '../types';
 
 import { getUnixTimestamp } from '../utils/getUnixTimestamp';
@@ -171,16 +171,18 @@ class AnthropicWrapper implements IProviderWrapper {
     };
   }
 
-  private convertStreamEventToOpenAIChunk(event:Anthropic.Messages.MessageStreamEvent, model:string):OpenAI.Chat.Completions.ChatCompletionChunk {
+  private convertStreamEventToOpenAIChunk(event:Anthropic.Messages.MessageStreamEvent, model:string, messageId: string):OpenAI.Chat.Completions.ChatCompletionChunk {
     const chunk: OpenAI.Chat.Completions.ChatCompletionChunk = {
-      id: '', // We need to populate this from the input event
+      id: messageId, // We need to populate this from the input event
       object: 'chat.completion.chunk',
       created: Math.floor(Date.now() / 1000), // Assuming current time for lack of a better reference
       model: model, // We will populate this from the input event
+      system_fingerprint: undefined,
       choices: [], // We will create this from the input event content
     };
+    //console.log(event);
     if (
-      event.type === 'content_block_start'
+      event.type === 'message_start'
     ) {
       chunk.choices = [
         {
@@ -217,24 +219,27 @@ class AnthropicWrapper implements IProviderWrapper {
     }
     return chunk
   }
-  
-  private async* convertAnthropicStreamtoOpenAI(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string): AsyncGenerator<OpenAI.Chat.Completions.ChatCompletionChunk, void, unknown> {
-    for await (const messageStreamEvent of stream) {
-      // Do the conversion here
-      const chatCompletionChunk: OpenAI.Chat.Completions.ChatCompletionChunk = this.convertStreamEventToOpenAIChunk(messageStreamEvent, model);
-  
-      // Yield the converted chat completion chunk
-      yield chatCompletionChunk;
+
+  private async* internalIterator(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string): AsyncIterator<OpenAI.Chat.Completions.ChatCompletionChunk> {
+    const validEventTypes = new Set(['message_start', 'content_block_delta', 'message_delta']);
+    let messageId: string | undefined;
+    messageId = '';
+    for await (const item of stream) {
+      // Capture the message ID from the first message_start event
+      if (item.type === 'message_start') {
+        messageId = item.message.id;
+      }
+      if (validEventTypes.has(item.type)) {
+        yield this.convertStreamEventToOpenAIChunk(item, model, messageId);
+      }
     }
   }
   
-  /*private async* toStreamingResponse(
-    stream: AsyncIterable<Anthropic.Completion>,
-  ): ResultStreaming {
-    for await (const chunk of stream) {
-      yield this.toStreamingChunk(chunk);
-    }
-  }*/
+  private convertAnthropicStreamtoOpenAI(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string): Stream<OpenAI.Chat.Completions.ChatCompletionChunk> {
+    const controller = new AbortController;
+    const iterator = () => this.internalIterator(stream,model);
+    return new Stream(iterator, controller);
+  }
 
   private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
     const enrichedData = standardModelList.data
@@ -284,21 +289,18 @@ class AnthropicWrapper implements IProviderWrapper {
     if (params.stream) {
       // Process streaming responses
       const response = await this.client.messages.create({
-        max_tokens: 200000,
-        messages: [{ role: 'user', content: 'Hello, Claude' }],
+        max_tokens: 4096,
+        temperature: temperature,
+        messages: this.toAnthropicPrompt(params.messages),
         model: params.model,
         stream: true
       });
-      const EMPTY_STREAM = {
-      } as Promise<ResultNotStreaming>;
-
-      const processedStream = this.convertAnthropicStreamtoOpenAI(response, params.model);
-      
-      return EMPTY_STREAM;
+      return this.convertAnthropicStreamtoOpenAI(response, params.model);
     } else {
       // Process non-streaming responses
       const response = await this.client.messages.create({
         max_tokens: 4096,
+        temperature: temperature,
         messages: this.toAnthropicPrompt(params.messages),
         model: params.model,
         stream: false,
