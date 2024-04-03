@@ -16,8 +16,7 @@ export interface Message {
 export type FinishReason =
   | 'stop'
   | 'length'
-  | 'function_call'
-  | 'content_filter';
+  | null;
 
 export interface ConsistentResponseChoice {
   finish_reason: FinishReason | null;

@@ -126,14 +126,24 @@ class AnthropicWrapper implements IProviderWrapper {
     }).filter((param) => param.content !== null); // In case we decided to filter out null contents
   }
   
-  private toFinishReson(string: string | null): FinishReason {
-    if (string === 'max_tokens') {
-      return 'length';
+  private convertFinishReasonStreaming(anthropicStopReason: Anthropic.MessageDeltaEvent.Delta['stop_reason']):OpenAI.ChatCompletionChunk.Choice['finish_reason'] {
+    if (anthropicStopReason == 'max_tokens') {
+      return 'length'
+    } else if (anthropicStopReason == 'end_turn') {
+      return 'stop'
+    } else {
+      return null
     }
-  
-    return 'stop';
   }
-  
+
+  private convertFinishReasonNoStreaming(anthropicStopReason: Anthropic.MessageDeltaEvent.Delta['stop_reason']):ChatCompletion.Choice['finish_reason'] {
+    if (anthropicStopReason == 'max_tokens') {
+      return 'length'
+    } else {
+      return 'stop'
+    }
+  }
+
   private toResponse(
     anthropicResponse: Anthropic.Message
   ): ChatCompletion {
@@ -154,28 +164,69 @@ class AnthropicWrapper implements IProviderWrapper {
             role: 'assistant',
           },
           logprobs: null,
-          finish_reason: this.toFinishReson(anthropicResponse.stop_reason),
+          finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
           index: 0,
         },
       ],
     };
   }
-  
-  /*private toStreamingChunk(
-    anthropicResponse: Anthropic.Completion,
-  ): StreamingChunk {
-    return {
-      model: anthropicResponse.model,
-      created: getUnixTimestamp(),
-      choices: [
-        {
-          delta: { content: anthropicResponse.completion, role: 'assistant' },
-          finish_reason: this.toFinishReson(anthropicResponse.stop_reason),
-          index: 0,
-        },
-      ],
+
+  private convertStreamEventToOpenAIChunk(event:Anthropic.Messages.MessageStreamEvent, model:string):OpenAI.Chat.Completions.ChatCompletionChunk {
+    const chunk: OpenAI.Chat.Completions.ChatCompletionChunk = {
+      id: '', // We need to populate this from the input event
+      object: 'chat.completion.chunk',
+      created: Math.floor(Date.now() / 1000), // Assuming current time for lack of a better reference
+      model: model, // We will populate this from the input event
+      choices: [], // We will create this from the input event content
     };
-  }*/
+    if (
+      event.type === 'content_block_start'
+    ) {
+      chunk.choices = [
+        {
+          index: 0,
+          delta: { role: 'assistant', content: ''},
+          logprobs: null,
+          finish_reason: null
+        }
+      ]
+    }
+    if (
+      event.type === 'content_block_delta'
+    ) {
+      chunk.choices = [
+        {
+          index: 0,
+          delta: { content: event.delta.text},
+          logprobs: null,
+          finish_reason: null
+        }
+      ]
+    }
+    if (
+      event.type === 'message_delta'
+    ) {
+      chunk.choices = [
+        {
+          index: 0,
+          delta: {},
+          logprobs: null,
+          finish_reason: this.convertFinishReasonStreaming(event.delta.stop_reason)
+        }
+      ]
+    }
+    return chunk
+  }
+  
+  private async* convertAnthropicStreamtoOpenAI(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string): AsyncGenerator<OpenAI.Chat.Completions.ChatCompletionChunk, void, unknown> {
+    for await (const messageStreamEvent of stream) {
+      // Do the conversion here
+      const chatCompletionChunk: OpenAI.Chat.Completions.ChatCompletionChunk = this.convertStreamEventToOpenAIChunk(messageStreamEvent, model);
+  
+      // Yield the converted chat completion chunk
+      yield chatCompletionChunk;
+    }
+  }
   
   /*private async* toStreamingResponse(
     stream: AsyncIterable<Anthropic.Completion>,
@@ -240,6 +291,8 @@ class AnthropicWrapper implements IProviderWrapper {
       });
       const EMPTY_STREAM = {
       } as Promise<ResultNotStreaming>;
+
+      const processedStream = this.convertAnthropicStreamtoOpenAI(response, params.model);
       
       return EMPTY_STREAM;
     } else {
