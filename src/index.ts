@@ -1,5 +1,5 @@
 import OpenAIWrapper from './providers/openai';
-import AzureWrapper from './providers/azure';
+//import AzureWrapper from './providers/azure';
 //import OllamaWrapper from './providers/ollama';
 import {
   HandlerModelParams,
@@ -28,7 +28,7 @@ interface ProviderParams {
 export enum ProviderType {
   OpenAI = 'openai',
   Anthropic = 'anthropic',
-  Azure = 'azure',
+/*  Azure = 'azure',*/
 /*  Ollama = 'ollama',*/
   LocalAI = 'localai',
 }
@@ -43,8 +43,8 @@ export class Provider {
       new OpenAIWrapper(apiKey, baseUrl),
       [ProviderType.Anthropic]: (apiKey, baseUrl) =>
       new AnthropicWrapper(apiKey, baseUrl),
-      [ProviderType.Azure]: (apiKey, baseUrl) =>
-      new AzureWrapper(apiKey, baseUrl),
+      /*[ProviderType.Azure]: (apiKey, baseUrl) =>
+      new AzureWrapper(apiKey, baseUrl),*/
       /*[ProviderType.Ollama]: (apiKey, baseUrl) =>
       new OllamaWrapper(apiKey, baseUrl),*/
       [ProviderType.LocalAI]: (apiKey, baseUrl) =>

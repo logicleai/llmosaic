@@ -1,4 +1,4 @@
-import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
+/*import { OpenAIClient, AzureKeyCredential } from "@azure/openai";
 import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
 import {
   HandlerModelParams,
@@ -63,4 +63,4 @@ class AzureWrapper implements IProviderWrapper {
   }
 }
 
-export default AzureWrapper;
+export default AzureWrapper;*/

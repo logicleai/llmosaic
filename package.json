@@ -1,6 +1,6 @@
 {
-  "name": "llmosaic",
-  "version": "0.1.4",
+  "name": "@logicleai/llmosaic",
+  "version": "0.1.5",
   "description": "JavaScript toolkit for calling LLM APIs in OpenAI format",
   "main": "dist/index.js",
   "scripts": {
