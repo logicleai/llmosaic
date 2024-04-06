@@ -28,7 +28,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.18.0",
+    "@anthropic-ai/sdk": "^0.20.1",
     "@azure/openai": "^1.0.0-beta.12",
     "cohere-ai": "^6.2.2",
     "eventsource": "^2.0.2",
