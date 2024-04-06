@@ -288,12 +288,28 @@ class AnthropicWrapper implements IProviderWrapper {
     const prompt = this.toAnthropicPrompt(params.messages);
     if (params.stream) {
       // Process streaming responses
-      const response = await this.client.messages.create({
+      const response = await this.client.beta.tools.messages.create({
         max_tokens: 4096,
         temperature: temperature,
         messages: this.toAnthropicPrompt(params.messages),
         model: params.model,
-        stream: true
+        stream: true,
+        tools: [
+          {
+            "name": "get_weather",
+            "description": "Get the current weather in a given location",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "location": {
+                  "type": "string",
+                  "description": "The city and state, e.g. San Francisco, CA"
+                }
+              },
+              "required": ["location"]
+            }
+          }
+        ]
       });
       return this.convertAnthropicStreamtoOpenAI(response, params.model);
     } else {
