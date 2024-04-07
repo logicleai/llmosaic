@@ -3,6 +3,8 @@ import OpenAI from 'openai';
 
 import { Stream } from 'openai/streaming';
 
+import { Tool } from '@anthropic-ai/sdk/resources/beta/tools/messages';
+
 import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
 import {
   HandlerModelParams,
@@ -169,6 +171,28 @@ class AnthropicWrapper implements IProviderWrapper {
         },
       ],
     };
+  }
+
+  private convertAnthropicToolToChatCompletionTool(tool: Tool): OpenAI.ChatCompletionTool {
+    const functionDefinition: OpenAI.ChatCompletionTool['function'] = {
+        name: tool.name,
+        description: tool.description,
+        parameters: this.mapInputSchemaToParameters(tool.input_schema)
+    };
+
+    return {
+        function: functionDefinition,
+        type: 'function'
+    };
+  }
+
+  private mapInputSchemaToParameters(inputSchema: Tool.InputSchema): OpenAI.ChatCompletionTool['function'] {
+      const parameters: OpenAI.ChatCompletionTool['function'] = {
+          type: 'function',
+          properties: inputSchema.properties
+          // you might need to make more transformations here
+      };
+      return parameters;
   }
 
   private convertStreamEventToOpenAIChunk(event:Anthropic.Messages.MessageStreamEvent, model:string, messageId: string):OpenAI.Chat.Completions.ChatCompletionChunk {
