@@ -151,6 +151,37 @@ class AnthropicWrapper implements IProviderWrapper {
   private toResponse(
     anthropicResponse: Anthropic.Beta.Tools.ToolsBetaMessage
   ): ChatCompletion {
+    const choices: ChatCompletion['choices'] = [];
+  
+    for (const contentItem of anthropicResponse.content) {
+      const basicChoice = {
+        message: {},
+        logprobs: null, // Assuming logprobs are not provided in the anthropic response
+        finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
+        index: 0, // Index is set to 0 assuming only one completion is handled, otherwise this needs to be handled according to the data structure
+      };
+
+      if (contentItem.type === 'text') {
+        choices.push({
+          message: {
+            content: contentItem.text,
+            role: 'assistant',
+          },
+          logprobs: null, // Assuming logprobs are not provided in the anthropic response
+          finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
+          index: 0, // Index is set to 0 assuming only one completion is handled, otherwise this needs to be handled according to the data structure
+        });
+      } else if (contentItem.type === 'tool_use') {
+        const toolUse: ChatCompletionMessageToolCall.Function = {
+          name: contentItem.name,
+          arguments: JSON.stringify(contentItem.input),
+        };
+
+        // Including 'tool_calls' in the 'message' property
+        basicChoice.message.tool_calls = [toolUse];
+        choices.push(basicChoice);
+      }
+    }
     return {
       id: anthropicResponse.id,
       model: anthropicResponse.model,
