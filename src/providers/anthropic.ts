@@ -138,16 +138,18 @@ class AnthropicWrapper implements IProviderWrapper {
     }
   }
 
-  private convertFinishReasonNoStreaming(anthropicStopReason: Anthropic.MessageDeltaEvent.Delta['stop_reason']):ChatCompletion.Choice['finish_reason'] {
+  private convertFinishReasonNoStreaming(anthropicStopReason: Anthropic.Beta.Tools.ToolsBetaMessage['stop_reason']):ChatCompletion.Choice['finish_reason'] {
     if (anthropicStopReason == 'max_tokens') {
       return 'length'
+    } else if (anthropicStopReason == 'tool_use') {
+      return 'tool_calls'
     } else {
       return 'stop'
     }
   }
 
   private toResponse(
-    anthropicResponse: Anthropic.Message
+    anthropicResponse: Anthropic.Beta.Tools.ToolsBetaMessage
   ): ChatCompletion {
     return {
       id: anthropicResponse.id,
@@ -162,7 +164,7 @@ class AnthropicWrapper implements IProviderWrapper {
       choices: [
         {
           message: {
-            content: anthropicResponse.content[0].text,
+            content: anthropicResponse.content[0].text as string,
             role: 'assistant',
           },
           logprobs: null,
@@ -174,25 +176,21 @@ class AnthropicWrapper implements IProviderWrapper {
   }
 
   private convertAnthropicToolToChatCompletionTool(tool: Tool): OpenAI.ChatCompletionTool {
-    const functionDefinition: OpenAI.ChatCompletionTool['function'] = {
-        name: tool.name,
-        description: tool.description,
-        parameters: this.mapInputSchemaToParameters(tool.input_schema)
-    };
-
     return {
-        function: functionDefinition,
-        type: 'function'
+        type: 'function',
+        function: {
+            name: tool.name,
+            description: tool.description,
+            parameters: this.mapInputSchemaToParameters(tool.input_schema)
+        }
     };
   }
 
-  private mapInputSchemaToParameters(inputSchema: Tool.InputSchema): OpenAI.ChatCompletionTool['function'] {
-      const parameters: OpenAI.ChatCompletionTool['function'] = {
-          type: 'function',
-          properties: inputSchema.properties
-          // you might need to make more transformations here
-      };
-      return parameters;
+  private mapInputSchemaToParameters(inputSchema: Tool.InputSchema): OpenAI.ChatCompletionTool['function']['parameters'] {
+      return {
+        type: 'object',
+        properties: inputSchema.properties
+    };
   }
 
   private convertStreamEventToOpenAIChunk(event:Anthropic.Messages.MessageStreamEvent, model:string, messageId: string):OpenAI.Chat.Completions.ChatCompletionChunk {
@@ -312,38 +310,22 @@ class AnthropicWrapper implements IProviderWrapper {
     const prompt = this.toAnthropicPrompt(params.messages);
     if (params.stream) {
       // Process streaming responses
-      const response = await this.client.beta.tools.messages.create({
-        max_tokens: 4096,
-        temperature: temperature,
-        messages: this.toAnthropicPrompt(params.messages),
-        model: params.model,
-        stream: true,
-        tools: [
-          {
-            "name": "get_weather",
-            "description": "Get the current weather in a given location",
-            "input_schema": {
-              "type": "object",
-              "properties": {
-                "location": {
-                  "type": "string",
-                  "description": "The city and state, e.g. San Francisco, CA"
-                }
-              },
-              "required": ["location"]
-            }
-          }
-        ]
-      });
-      return this.convertAnthropicStreamtoOpenAI(response, params.model);
-    } else {
-      // Process non-streaming responses
       const response = await this.client.messages.create({
         max_tokens: 4096,
         temperature: temperature,
         messages: this.toAnthropicPrompt(params.messages),
         model: params.model,
-        stream: false,
+        stream: true,
+      });
+      return this.convertAnthropicStreamtoOpenAI(response, params.model);
+    } else {
+      // Process non-streaming responses
+      const response = await this.client.beta.tools.messages.create({
+        max_tokens: 4096,
+        temperature: temperature,
+        messages: this.toAnthropicPrompt(params.messages),
+        model: params.model,
+        stream: false
       });
       return this.toResponse(response);
     }
