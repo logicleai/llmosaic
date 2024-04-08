@@ -151,7 +151,7 @@ class AnthropicWrapper implements IProviderWrapper {
   private toResponse(
     anthropicResponse: Anthropic.Beta.Tools.ToolsBetaMessage
   ): ChatCompletion {
-    const choices: ChatCompletion['choices'] = [];
+    const toolUse: ChatCompletion.Choice['message']['tool_calls'] = []
   
     for (const contentItem of anthropicResponse.content) {
       const basicChoice = {
@@ -162,7 +162,7 @@ class AnthropicWrapper implements IProviderWrapper {
       };
 
       if (contentItem.type === 'text') {
-        choices.push({
+        const choice: ChatCompletion.Choice = {
           message: {
             content: contentItem.text,
             role: 'assistant',
@@ -170,16 +170,23 @@ class AnthropicWrapper implements IProviderWrapper {
           logprobs: null, // Assuming logprobs are not provided in the anthropic response
           finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
           index: 0, // Index is set to 0 assuming only one completion is handled, otherwise this needs to be handled according to the data structure
-        });
+        }
       } else if (contentItem.type === 'tool_use') {
-        const toolUse: ChatCompletionMessageToolCall.Function = {
-          name: contentItem.name,
-          arguments: JSON.stringify(contentItem.input),
-        };
+        toolUse.push({
+          type: 'function',
+          id: contentItem.id,
+          function: contentItem.input as Anthropic.Beta.Tools.ToolUseBlock['input']
+        })
 
-        // Including 'tool_calls' in the 'message' property
-        basicChoice.message.tool_calls = [toolUse];
-        choices.push(basicChoice);
+        const choice: ChatCompletion.Choice = {
+          message: {
+            content: null,
+            role: 'assistant',
+          },
+          logprobs: null, // Assuming logprobs are not provided in the anthropic response
+          finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
+          index: 0, // Index is set to 0 assuming only one completion is handled, otherwise this needs to be handled according to the data structure
+        }
       }
     }
     return {
