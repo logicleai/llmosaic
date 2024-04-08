@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 
 import { Stream } from 'openai/streaming';
 
-import { Tool } from '@anthropic-ai/sdk/resources/beta/tools/messages';
+import { Tool, MessageCreateParams } from '@anthropic-ai/sdk/resources/beta/tools/messages';
 
 import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
 import {
@@ -151,43 +151,33 @@ class AnthropicWrapper implements IProviderWrapper {
   private toResponse(
     anthropicResponse: Anthropic.Beta.Tools.ToolsBetaMessage
   ): ChatCompletion {
+    let basicChoice:ChatCompletion.Choice = {
+      message: {
+        content: null,
+        role: 'assistant'
+      },
+      logprobs: null, // Assuming logprobs are not provided in the anthropic response
+      finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
+      index: 0, // Index is set to 0 assuming only one completion is handled, otherwise this needs to be handled according to the data structure
+    };
     const toolUse: ChatCompletion.Choice['message']['tool_calls'] = []
   
     for (const contentItem of anthropicResponse.content) {
-      const basicChoice = {
-        message: {},
-        logprobs: null, // Assuming logprobs are not provided in the anthropic response
-        finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
-        index: 0, // Index is set to 0 assuming only one completion is handled, otherwise this needs to be handled according to the data structure
-      };
-
       if (contentItem.type === 'text') {
-        const choice: ChatCompletion.Choice = {
-          message: {
-            content: contentItem.text,
-            role: 'assistant',
-          },
-          logprobs: null, // Assuming logprobs are not provided in the anthropic response
-          finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
-          index: 0, // Index is set to 0 assuming only one completion is handled, otherwise this needs to be handled according to the data structure
-        }
+        basicChoice.message.content = contentItem.text
       } else if (contentItem.type === 'tool_use') {
         toolUse.push({
           type: 'function',
           id: contentItem.id,
-          function: contentItem.input as Anthropic.Beta.Tools.ToolUseBlock['input']
+          function: {
+            name: contentItem.name,
+            arguments: JSON.stringify(contentItem.input)
+          }
         })
-
-        const choice: ChatCompletion.Choice = {
-          message: {
-            content: null,
-            role: 'assistant',
-          },
-          logprobs: null, // Assuming logprobs are not provided in the anthropic response
-          finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
-          index: 0, // Index is set to 0 assuming only one completion is handled, otherwise this needs to be handled according to the data structure
-        }
       }
+    }
+    if (toolUse.length > 0) {
+      basicChoice.message.tool_calls = toolUse;
     }
     return {
       id: anthropicResponse.id,
@@ -200,15 +190,7 @@ class AnthropicWrapper implements IProviderWrapper {
         total_tokens: (anthropicResponse.usage.input_tokens + anthropicResponse.usage.output_tokens)
       },
       choices: [
-        {
-          message: {
-            content: anthropicResponse.content[0].text as string,
-            role: 'assistant',
-          },
-          logprobs: null,
-          finish_reason: this.convertFinishReasonNoStreaming(anthropicResponse.stop_reason),
-          index: 0,
-        },
+        basicChoice
       ],
     };
   }
@@ -316,6 +298,60 @@ class AnthropicWrapper implements IProviderWrapper {
       object: standardModelList.object,
       data: enrichedData,
     };
+  }
+
+  private validateMaxTokens(maxTokens?: number | null): number {
+    if (typeof maxTokens !== 'number' || maxTokens <= 0 || maxTokens === undefined || maxTokens === null) {
+      return 1024; // default value
+    }
+    if (maxTokens > 4096) {
+      console.warn('max_tokens exceeds the maximum value of 4096. It has been capped to 4096.');
+      return 4096; // capped value
+    }
+    return maxTokens;
+  }
+  
+  private validateTemperature(temperature?: number | null): number | undefined {
+    if (temperature === undefined || temperature === null) return undefined;
+    if (temperature < 0 || temperature > 1) {
+      throw new Error('Temperature must be between 0 and 1.');
+    }
+    return temperature;
+  }
+  
+  private validateStreamUsage(stream?: boolean | null, tools?: OpenAI.ChatCompletionTool[]): boolean | undefined {
+    if (stream === true && tools && tools.length > 0) {
+      throw new Error('Streaming cannot be used in conjunction with tools.');
+    }
+    if (stream === null) {
+      return undefined
+    }
+    return stream; // undefined if not specified, unchanged otherwise
+  }
+  
+  private validateAndGenerateParamsArray(params: HandlerParams): MessageCreateParams {
+    // Validate individual parameters using helper functions
+    const maxTokens = this.validateMaxTokens(params.max_tokens);
+    const temperature = this.validateTemperature(params.temperature);
+    const stream = this.validateStreamUsage(params.stream, params.tools);
+  
+    // Build the validatedParams object without mutating the input object
+    const validatedParams: MessageCreateParams = {
+      messages: this.toAnthropicPrompt(params.messages),
+      model: params.model,
+      max_tokens: maxTokens,
+      ...(temperature !== undefined && { temperature }), // only add temperature if it's defined
+      ...(stream !== undefined && { stream }) // only add stream if it's defined
+    };
+  
+    // Copy other optional parameters if they are defined
+    ['metadata', 'stop_sequences', 'system', 'tools', 'top_k', 'top_p'].forEach(key => {
+      if (params[key] !== undefined) {
+        validatedParams[key] = params[key];
+      }
+    });
+  
+    return validatedParams;
   }
 
   async models(params: HandlerModelParams & { enrich: true }):Promise<EnrichedModelList>;
