@@ -3,7 +3,9 @@ import OpenAI from 'openai';
 
 import { Stream } from 'openai/streaming';
 
-import { Tool, MessageCreateParams } from '@anthropic-ai/sdk/resources/beta/tools/messages';
+import { Tool, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources/beta/tools/messages';
+
+import { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources';
 
 import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
 import {
@@ -112,20 +114,32 @@ class AnthropicWrapper implements IProviderWrapper {
   }
 
   private toAnthropicPrompt(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): Anthropic.Messages.MessageParam[] {
-    return messages.map((message): Anthropic.Messages.MessageParam => {
+    // Filter out messages that do not have roles of 'user' or 'assistant'
+    const filteredMessages = messages.filter((message) => message.role === 'user' || message.role === 'assistant');
+  
+    // Now work with the pre-filtered messages
+    return filteredMessages.map((message): Anthropic.Messages.MessageParam => {
       // Filter out messages with null content or transform them as needed
       if (message.content === null) {
         // If it's acceptable to convert null to an empty string, do so here
         message.content = '';
-        // Or if it's acceptable to omit messages with null content, return a placeholder 
-        // that should be filtered out in a subsequent step (not shown here).
+        // Or if you decided to omit messages with null content, they will be filtered out later
       }
-    
+  
       return {
         content: message.content as string, // Cast here assures the type matches
-        role: message.role as 'user' | 'assistant', // Assuming all message roles are 'user' or 'assistant'
+        role: message.role as 'user' | 'assistant', // Only 'user' or 'assistant' roles are included
       };
     }).filter((param) => param.content !== null); // In case we decided to filter out null contents
+  }
+
+  private extractSystemMessageContent(messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[]): string | undefined {
+    for (const message of messages) {
+      if (message.role === 'system') {
+        return message.content;
+      }
+    }
+    return undefined; // This line is actually optional as the function would return undefined by default if no return statement is executed.
   }
   
   private convertFinishReasonStreaming(anthropicStopReason: Anthropic.MessageDeltaEvent.Delta['stop_reason']):OpenAI.ChatCompletionChunk.Choice['finish_reason'] {
@@ -329,27 +343,56 @@ class AnthropicWrapper implements IProviderWrapper {
     return stream; // undefined if not specified, unchanged otherwise
   }
   
-  private validateAndGenerateParamsArray(params: HandlerParams): MessageCreateParams {
+  private validateAndGenerateNonStreamingParamsArray(params: HandlerParams): MessageCreateParamsNonStreaming {
     // Validate individual parameters using helper functions
     const maxTokens = this.validateMaxTokens(params.max_tokens);
     const temperature = this.validateTemperature(params.temperature);
-    const stream = this.validateStreamUsage(params.stream, params.tools);
+    //const stream = this.validateStreamUsage(params.stream, params.tools);
+    const system = this.extractSystemMessageContent(params.messages);
   
     // Build the validatedParams object without mutating the input object
-    const validatedParams: MessageCreateParams = {
+    const validatedParams: MessageCreateParamsNonStreaming = {
       messages: this.toAnthropicPrompt(params.messages),
       model: params.model,
       max_tokens: maxTokens,
+      stream: false,
       ...(temperature !== undefined && { temperature }), // only add temperature if it's defined
-      ...(stream !== undefined && { stream }) // only add stream if it's defined
+      ...(system !== undefined && { system }), // only add system prompt if it's defined
     };
   
     // Copy other optional parameters if they are defined
-    ['metadata', 'stop_sequences', 'system', 'tools', 'top_k', 'top_p'].forEach(key => {
+    /*['metadata', 'stop_sequences', 'system', 'tools', 'top_k', 'top_p'].forEach(key => {
       if (params[key] !== undefined) {
         validatedParams[key] = params[key];
       }
-    });
+    });*/
+  
+    return validatedParams;
+  }
+
+  private validateAndGenerateStreamingParamsArray(params: HandlerParams): MessageCreateParamsStreaming {
+    // Validate individual parameters using helper functions
+    const maxTokens = this.validateMaxTokens(params.max_tokens);
+    const temperature = this.validateTemperature(params.temperature);
+    //const stream = this.validateStreamUsage(params.stream, params.tools);
+    const system = this.extractSystemMessageContent(params.messages);
+  
+    // Build the validatedParams object without mutating the input object
+    const validatedParams: MessageCreateParamsStreaming = {
+      messages: this.toAnthropicPrompt(params.messages),
+      model: params.model,
+      max_tokens: maxTokens,
+      stream: true,
+      ...(temperature !== undefined && { temperature }), // only add temperature if it's defined
+      ...(system !== undefined && { system }), // only add system prompt if it's defined
+    };
+  
+    // Copy other optional parameters if they are defined
+    /*['metadata', 'stop_sequences', 'system', 'tools', 'top_k', 'top_p'].forEach(key => {
+      if (params[key] !== undefined) {
+        validatedParams[key] = params[key];
+      }
+    });*/
   
     return validatedParams;
   }
@@ -380,26 +423,18 @@ class AnthropicWrapper implements IProviderWrapper {
   public async completions(
     params: HandlerParams & { stream?: boolean },
   ): Promise<Result> {
-    const temperature = params.temperature ?? 0.5;
-    const prompt = this.toAnthropicPrompt(params.messages);
     if (params.stream) {
       // Process streaming responses
+      const validatedAnthropicParams = this.validateAndGenerateStreamingParamsArray(params);
       const response = await this.client.messages.create({
-        max_tokens: 4096,
-        temperature: temperature,
-        messages: this.toAnthropicPrompt(params.messages),
-        model: params.model,
-        stream: true,
+        ...validatedAnthropicParams
       });
       return this.convertAnthropicStreamtoOpenAI(response, params.model);
     } else {
       // Process non-streaming responses
+      const validatedAnthropicParams = this.validateAndGenerateNonStreamingParamsArray(params);
       const response = await this.client.beta.tools.messages.create({
-        max_tokens: 4096,
-        temperature: temperature,
-        messages: this.toAnthropicPrompt(params.messages),
-        model: params.model,
-        stream: false
+        ...validatedAnthropicParams
       });
       return this.toResponse(response);
     }
