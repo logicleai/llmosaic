@@ -209,21 +209,21 @@ class AnthropicWrapper implements IProviderWrapper {
     };
   }
 
-  private convertAnthropicToolToChatCompletionTool(tool: Tool): OpenAI.ChatCompletionTool {
+  private convertOpenAIToolToAnthropicTool(tool: OpenAI.ChatCompletionTool): Tool {
     return {
-        type: 'function',
-        function: {
-            name: tool.name,
-            description: tool.description,
-            parameters: this.mapInputSchemaToParameters(tool.input_schema)
-        }
-    };
+      name: tool.function.name,
+      description: tool.function.description,
+      input_schema: this.mapParametersToInputSchema(tool.function.parameters)
+    }
   }
 
-  private mapInputSchemaToParameters(inputSchema: Tool.InputSchema): OpenAI.ChatCompletionTool['function']['parameters'] {
-      return {
-        type: 'object',
-        properties: inputSchema.properties
+  private mapParametersToInputSchema(parameters: OpenAI.ChatCompletionTool['function']['parameters']): Tool.InputSchema {
+    const properties: unknown = parameters?.properties
+    const required: unknown = parameters?.required
+    return {
+      type: 'object',
+      ...(properties !== undefined && { properties }),
+      ...(required !== undefined && { required })
     };
   }
 
@@ -333,21 +333,21 @@ class AnthropicWrapper implements IProviderWrapper {
     return temperature;
   }
   
-  private validateStreamUsage(stream?: boolean | null, tools?: OpenAI.ChatCompletionTool[]): boolean | undefined {
-    if (stream === true && tools && tools.length > 0) {
-      throw new Error('Streaming cannot be used in conjunction with tools.');
+  private validateTools(tools?: OpenAI.ChatCompletionTool[]): Tool[] | undefined {
+    if (tools === null) {
+      return undefined;
+    } else if (tools) {
+      return tools.map((tool) => this.convertOpenAIToolToAnthropicTool(tool));
+    } else {
+      return undefined; // undefined if not specified
     }
-    if (stream === null) {
-      return undefined
-    }
-    return stream; // undefined if not specified, unchanged otherwise
-  }
+  }  
   
   private validateAndGenerateNonStreamingParamsArray(params: HandlerParams): MessageCreateParamsNonStreaming {
     // Validate individual parameters using helper functions
     const maxTokens = this.validateMaxTokens(params.max_tokens);
     const temperature = this.validateTemperature(params.temperature);
-    //const stream = this.validateStreamUsage(params.stream, params.tools);
+    const tools = this.validateTools(params.tools);
     const system = this.extractSystemMessageContent(params.messages);
   
     // Build the validatedParams object without mutating the input object
@@ -356,6 +356,7 @@ class AnthropicWrapper implements IProviderWrapper {
       model: params.model,
       max_tokens: maxTokens,
       stream: false,
+      ...(tools !== undefined && { tools }), // only add temperature if it's defined
       ...(temperature !== undefined && { temperature }), // only add temperature if it's defined
       ...(system !== undefined && { system }), // only add system prompt if it's defined
     };
@@ -371,6 +372,10 @@ class AnthropicWrapper implements IProviderWrapper {
   }
 
   private validateAndGenerateStreamingParamsArray(params: HandlerParams): MessageCreateParamsStreaming {
+
+    if (params.tools && params.tools.length > 0) {
+      throw new Error('Streaming cannot be used in conjunction with tools, see the official docs for more informations: https://docs.anthropic.com/claude/docs/tool-use');
+    }
     // Validate individual parameters using helper functions
     const maxTokens = this.validateMaxTokens(params.max_tokens);
     const temperature = this.validateTemperature(params.temperature);
