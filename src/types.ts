@@ -117,11 +117,27 @@ export interface EnrichedModelCapabilities {
   functions: string
 }
 
-export interface EnrichedModel extends Model{
+export interface EnrichedModel extends Model, EnrichmentModelData{
+
+}
+
+export type ModelEnrichmentDataType = {
+  [key: string]: EnrichmentModelData;
+};
+
+export interface EnrichmentModelData {
   name: string
   description: string
   context_length: number
   tokenizer: string
+  capabilities: {
+    vision: boolean,
+    function_calling: boolean
+  },
+  prices: {
+    input: number,
+    output: number
+  }
 }
 
 export interface StandardModelList {

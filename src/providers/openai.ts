@@ -8,32 +8,65 @@ import {
   Result,
   Model,
   EnrichedModel,
+  ModelEnrichmentDataType,
 } from '../types';
 
-const modelEnrichmentData: { [key: string]: { name: string; description: string; context_length: number; tokenizer: string; } } = {
+const modelEnrichmentData:ModelEnrichmentDataType = {
   'gpt-4-turbo-preview': {
     name: 'GPT-4 Turbo',
     description: 'Latest GPT-4 model with a massive 128,000-token capacity, featuring advanced capabilities like improved instruction following and JSON mode.',
     context_length: 128000,
-    tokenizer: 'openai'
+    tokenizer: 'openai',
+    capabilities: {
+      vision: false,
+      function_calling: true
+    },
+    prices: {
+      input: 10,
+      output: 30
+    }
   },
   'gpt-4': {
     name: 'GPT-4',
     description: 'Advanced multimodal model for generating text and code, excelling in complex problem-solving with a broad knowledge base.',
     context_length: 8192,
-    tokenizer: 'openai'
+    tokenizer: 'openai',
+    capabilities: {
+      vision: false,
+      function_calling: true
+    },
+    prices: {
+      input: 30,
+      output: 60
+    }
   },
   'gpt-4-32k': {
     name: 'GPT-4 32K',
     description: 'Enhanced GPT-4 with extended 32,768 token capacity, ideal for longer context applications while retaining high accuracy.',
     context_length: 32768,
-    tokenizer: 'openai'
+    tokenizer: 'openai',
+    capabilities: {
+      vision: false,
+      function_calling: true
+    },
+    prices: {
+      input: 60,
+      output: 120
+    }
   },
   'gpt-3.5-turbo': {
     name: 'GPT-3.5 Turbo',
     description: 'Cost-effective GPT-3.5 model optimized for chat and traditional tasks, balancing performance and resource usage.',
     context_length: 16385,
-    tokenizer: 'openai'
+    tokenizer: 'openai',
+    capabilities: {
+      vision: false,
+      function_calling: true
+    },
+    prices: {
+      input: 0.5,
+      output: 1.5
+    }
   }
 };
 
