@@ -181,8 +181,8 @@ class AnthropicWrapper implements IProviderWrapper {
         basicChoice.message.content = contentItem.text
       } else if (contentItem.type === 'tool_use') {
         toolUse.push({
-          type: 'function',
           id: contentItem.id,
+          type: 'function',
           function: {
             name: contentItem.name,
             arguments: JSON.stringify(contentItem.input)
