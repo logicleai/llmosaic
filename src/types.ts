@@ -1,4 +1,4 @@
-import { ChatCompletionCreateParams, ChatCompletionCreateParamsNonStreaming, ChatCompletionCreateParamsStreaming, ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { ChatCompletionTool, ChatCompletionCreateParamsNonStreaming, ChatCompletionCreateParamsStreaming, ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 import { ChatCompletion, ChatCompletionChunk } from 'openai/resources/chat/completions'
 
@@ -79,6 +79,8 @@ export interface ChatCompletionCreateParamsBase {
 }
 
 export type Message = ChatCompletionMessageParam;
+
+export type Tool = ChatCompletionTool;
 
 export type HandlerParamsStreaming = ChatCompletionCreateParamsStreaming;
 
