@@ -8,11 +8,6 @@ import { Stream } from 'openai/streaming';
 
 export type Role = 'system' | 'user' | 'assistant' | 'function';
 
-export interface Message {
-  role: Role;
-  content: string | null;
-}
-
 export type FinishReason =
   | 'stop'
   | 'length'
@@ -82,6 +77,8 @@ export interface ChatCompletionCreateParamsBase {
   stream?: boolean | null;
   temperature?: number | undefined;
 }
+
+export type Message = ChatCompletionMessageParam;
 
 export type HandlerParamsStreaming = ChatCompletionCreateParamsStreaming;
 
