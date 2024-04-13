@@ -17,5 +17,6 @@ jobs:
         with:
           node-version: 20.x.x
           cache: npm
+      - run: npm install
       - name: Lint
         run: npm run lint
