@@ -58,7 +58,7 @@ export type Result = ResultNotStreaming | ResultStreaming;
 export interface ChatCompletionCreateParamsBase {
   messages: Array<ChatCompletionMessageParam>;
   model:
-    | (string & {})
+    | (string & object)
     | 'gpt-4-turbo-preview'
     | 'gpt-4-1106-preview'
     | 'gpt-4-0125-preview'

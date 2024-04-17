@@ -13,7 +13,6 @@ import {
   ModelList,
   EnrichedModelList,
   StandardModelList,
-  Model,
   HandlerModelParamsEnriched,
   HandlerModelParamsStandard,
 } from './types';

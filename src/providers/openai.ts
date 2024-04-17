@@ -254,7 +254,7 @@ class OpenAIWrapper implements IProviderWrapper {
 
   private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
     const enrichedData = standardModelList.data
-      .filter((model: Model) => modelEnrichmentData.hasOwnProperty(model.id))
+      .filter((model: Model) => Object.prototype.hasOwnProperty.call(modelEnrichmentData, model.id))
       .map((model: Model): EnrichedModel => {
         const enrichmentData = modelEnrichmentData[model.id];
         return {

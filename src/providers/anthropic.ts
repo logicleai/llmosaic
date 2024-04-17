@@ -7,7 +7,7 @@ import { Tool, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resourc
 
 import { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources';
 
-import { EnrichedModelList, EnrichmentModelData, IProviderWrapper, ModelList, StandardModelList } from '../types';
+import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
 import {
   HandlerModelParams,
   HandlerParams,
@@ -214,7 +214,7 @@ class AnthropicWrapper implements IProviderWrapper {
   private toResponse(
     anthropicResponse: Anthropic.Beta.Tools.ToolsBetaMessage
   ): ChatCompletion {
-    let basicChoice:ChatCompletion.Choice = {
+    const basicChoice:ChatCompletion.Choice = {
       message: {
         content: null,
         role: 'assistant'
@@ -348,7 +348,7 @@ class AnthropicWrapper implements IProviderWrapper {
 
   private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
     const enrichedData = standardModelList.data
-      .filter((model: Model) => modelEnrichmentData.hasOwnProperty(model.id))
+      .filter((model: Model) => Object.prototype.hasOwnProperty.call(modelEnrichmentData, model.id))
       .map((model: Model): EnrichedModel => {
         const enrichmentData = modelEnrichmentData[model.id];
         return {
