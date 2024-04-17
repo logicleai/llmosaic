@@ -13,8 +13,13 @@ jobs:
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm install
-      - run: npm run build
-      - run: npm publish
+      - name: Install dependencies
+        run: npm install
+      - name: Code quality check
+        run: npm run lint
+      - name: Build the package
+        run: npm run build
+      - name: Publish the package
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
