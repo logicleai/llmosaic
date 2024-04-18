@@ -279,7 +279,7 @@ class TogetherWrapper implements IProviderWrapper {
   ):Promise<ModelList>{
     const data = {
       object: "string",
-      data: (await this.together.models.list()).data,
+      data: modelStandardData,
     } as ModelList;
     // Check if the 'enrich' parameter is true
     if (params.enrich) {
