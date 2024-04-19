@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.6",
-    "eventsource": "^2.0.2",
     "js-tiktoken": "^1.0.7",
     "openai": "^4.38.1"
   },
