@@ -28,10 +28,10 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.1",
+    "@anthropic-ai/sdk": "^0.20.6",
     "eventsource": "^2.0.2",
     "js-tiktoken": "^1.0.7",
-    "openai": "^4.33.0"
+    "openai": "^4.38.1"
   },
   "engines": {
     "node": ">=18"
