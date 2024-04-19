@@ -29,12 +29,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.1",
-    "@azure/openai": "^1.0.0-beta.12",
-    "cohere-ai": "^6.2.2",
     "eventsource": "^2.0.2",
     "js-tiktoken": "^1.0.7",
-    "openai": "^4.33.0",
-    "replicate": "^0.20.1"
+    "openai": "^4.33.0"
   },
   "engines": {
     "node": ">=18"
