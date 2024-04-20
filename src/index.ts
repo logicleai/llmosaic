@@ -1,4 +1,4 @@
-import OpenAIWrapper from './providers/openai';
+import OpenAIWrapper from './providers/openai/openai';
 //import AzureWrapper from './providers/azure';
 //import OllamaWrapper from './providers/ollama';
 import {
@@ -16,7 +16,7 @@ import {
   HandlerModelParamsEnriched,
   HandlerModelParamsStandard,
 } from './types';
-import AnthropicWrapper from './providers/anthropic';
+import AnthropicWrapper from './providers/anthropic/anthropic';
 
 interface ProviderParams {
   apiKey: string;
@@ -30,6 +30,7 @@ export enum ProviderType {
 /*  Azure = 'azure',*/
 /*  Ollama = 'ollama',*/
   LocalAI = 'localai',
+  TogetherAI = 'togetherai',
 }
 
 export class Provider {
@@ -47,6 +48,8 @@ export class Provider {
       /*[ProviderType.Ollama]: (apiKey, baseUrl) =>
       new OllamaWrapper(apiKey, baseUrl),*/
       [ProviderType.LocalAI]: (apiKey, baseUrl) =>
+      new OpenAIWrapper(apiKey, baseUrl),
+      [ProviderType.TogetherAI]: (apiKey, baseUrl) =>
       new OpenAIWrapper(apiKey, baseUrl),
   };
 

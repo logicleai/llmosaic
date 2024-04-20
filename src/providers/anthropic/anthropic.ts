@@ -7,7 +7,7 @@ import { Tool, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resourc
 
 import { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources';
 
-import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
+import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../../types';
 import {
   HandlerModelParams,
   HandlerParams,
@@ -17,9 +17,9 @@ import {
   Model,
   EnrichedModel,
   ModelEnrichmentDataType,
-} from '../types';
+} from '../../types';
 
-import { getUnixTimestamp } from '../utils/getUnixTimestamp';
+import { getUnixTimestamp } from '../../utils/getUnixTimestamp';
 
 import { ChatCompletion } from 'openai/resources/chat/completions'
 
