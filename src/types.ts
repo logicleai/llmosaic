@@ -120,6 +120,10 @@ export interface EnrichedModel extends Model, EnrichmentModelData{
 
 }
 
+export type ModelDataType = {
+  [key: string]: EnrichedModel;
+};
+
 export type ModelEnrichmentDataType = {
   [key: string]: EnrichmentModelData;
 };
