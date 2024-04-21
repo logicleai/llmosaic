@@ -6,8 +6,6 @@ import {
   ResultStreaming,
   ResultNotStreaming,
   Result,
-  Model,
-  EnrichedModel,
 } from '../../types';
 
 import { modelEnrichmentData } from './models';
@@ -26,23 +24,6 @@ class OpenAIWrapper implements IProviderWrapper {
     });
   }
 
-  private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
-    const enrichedData = standardModelList.data
-      .filter((model: Model) => Object.prototype.hasOwnProperty.call(modelEnrichmentData, model.id))
-      .map((model: Model): EnrichedModel => {
-        const enrichmentData = modelEnrichmentData[model.id];
-        return {
-          ...model,
-          ...enrichmentData,
-        };
-      });
-
-    return {
-      object: standardModelList.object,
-      data: enrichedData,
-    };
-  }
-
   async models(params: HandlerModelParams & { enrich: true }):Promise<EnrichedModelList>;
 
   async models(params: HandlerModelParams & { enrich?: false }):Promise<StandardModelList>;
@@ -53,7 +34,7 @@ class OpenAIWrapper implements IProviderWrapper {
     const standardModelList = {
       object: "string",
       data: (await this.openai.models.list()).data,
-    } as StandardModelList;
+    } as ModelList;
     if (params.enrich) {
       return enrichToStandardDynamicModelList(standardModelList, modelEnrichmentData);
     } else {
