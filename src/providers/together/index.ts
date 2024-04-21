@@ -27,23 +27,6 @@ class TogetherWrapper implements IProviderWrapper {
     });
   }
 
-  private enrichModels(standardModelList: StandardModelList): EnrichedModelList {
-    const enrichedData = standardModelList.data
-      .filter((model: Model) => Object.prototype.hasOwnProperty.call(modelEnrichmentData, model.id))
-      .map((model: Model): EnrichedModel => {
-        const enrichmentData = modelEnrichmentData[model.id];
-        return {
-          ...model,
-          ...enrichmentData,
-        };
-      });
-
-    return {
-      object: standardModelList.object,
-      data: enrichedData,
-    };
-  }
-
   async models(params: HandlerModelParams & { enrich: true }):Promise<EnrichedModelList>;
 
   async models(params: HandlerModelParams & { enrich?: false }):Promise<StandardModelList>;
@@ -51,15 +34,14 @@ class TogetherWrapper implements IProviderWrapper {
   async models(
     params: HandlerModelParams & { enrich?: boolean },
   ):Promise<ModelList>{
-    const data = {
+    const standardModelList = {
       object: "string",
-      data: modelStandardData,
+      data: (await this.openai.models.list()).data,
     } as ModelList;
-    // Check if the 'enrich' parameter is true
     if (params.enrich) {
-      return this.enrichModels(data);
+      return enrichToStandardDynamicModelList(standardModelList, modelEnrichmentData);
     } else {
-      return data;
+      return standardModelList;
     }
   }
 
