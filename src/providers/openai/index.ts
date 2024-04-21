@@ -10,7 +10,7 @@ import {
   EnrichedModel,
 } from '../../types';
 
-import { modelEnrichmentData } from './config';
+import { modelEnrichmentData } from './models';
 
 class OpenAIWrapper implements IProviderWrapper {
   private openai: OpenAI;

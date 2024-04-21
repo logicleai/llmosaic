@@ -1,6 +1,8 @@
-import OpenAIWrapper from './providers/openai/openai';
+import OpenAIWrapper from './providers/openai';
+import AnthropicWrapper from './providers/anthropic';
 //import AzureWrapper from './providers/azure';
 //import OllamaWrapper from './providers/ollama';
+
 import {
   HandlerModelParams,
   HandlerParams,
@@ -16,7 +18,6 @@ import {
   HandlerModelParamsEnriched,
   HandlerModelParamsStandard,
 } from './types';
-import AnthropicWrapper from './providers/anthropic/anthropic';
 
 interface ProviderParams {
   apiKey: string;
