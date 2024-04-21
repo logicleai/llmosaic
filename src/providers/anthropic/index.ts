@@ -22,6 +22,8 @@ import { getUnixTimestamp } from '../../utils/getUnixTimestamp';
 import { ChatCompletion } from 'openai/resources/chat/completions'
 import { modelEnrichmentData } from './models';
 
+import { convertToStandardModelList } from '../../utils/toBaseModel';
+
 class AnthropicWrapper implements IProviderWrapper {
   private client: Anthropic;
 
@@ -334,12 +336,12 @@ class AnthropicWrapper implements IProviderWrapper {
     const data = {
       object: "string",
       data: modelEnrichmentData,
-    } as ModelList;
+    } as EnrichedModelList;
     // Check if the 'enrich' parameter is true
     if (params.enrich) {
-      return this.enrichModels(data);
-    } else {
       return data;
+    } else {
+      return convertToStandardModelList(data);
     }
   }
 
