@@ -11,6 +11,7 @@ import {
 } from '../../types';
 
 import { modelEnrichmentData } from './models';
+import { enrichToStandardDynamicModelList } from '../../utils/modelsConversion';
 
 class OpenAIWrapper implements IProviderWrapper {
   private openai: OpenAI;
@@ -49,15 +50,14 @@ class OpenAIWrapper implements IProviderWrapper {
   async models(
     params: HandlerModelParams & { enrich?: boolean },
   ):Promise<ModelList>{
-    const data = {
+    const standardModelList = {
       object: "string",
       data: (await this.openai.models.list()).data,
-    } as ModelList;
-    // Check if the 'enrich' parameter is true
+    } as StandardModelList;
     if (params.enrich) {
-      return this.enrichModels(data);
+      return enrichToStandardDynamicModelList(standardModelList, modelEnrichmentData);
     } else {
-      return data;
+      return standardModelList;
     }
   }
 

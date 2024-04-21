@@ -129,18 +129,18 @@ export type ModelEnrichmentDataType = {
 };
 
 export interface EnrichmentModelData {
-  name: string
-  description: string
-  context_length: number
-  tokenizer: string
+  name: string | null
+  description: string | null
+  context_length: number | null
+  tokenizer: string | null
   capabilities: {
-    vision: boolean,
+    vision: boolean
     function_calling: boolean
-  },
+  } | null
   prices: {
-    input: number,
+    input: number
     output: number
-  }
+  } | null
 }
 
 export interface StandardModelList {

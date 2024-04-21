@@ -22,7 +22,7 @@ import { getUnixTimestamp } from '../../utils/getUnixTimestamp';
 import { ChatCompletion } from 'openai/resources/chat/completions'
 import { modelEnrichmentData } from './models';
 
-import { convertToStandardModelList } from '../../utils/toBaseModel';
+import { convertToStandardStaticModelList } from '../../utils/modelsConversion';
 
 class AnthropicWrapper implements IProviderWrapper {
   private client: Anthropic;
@@ -341,7 +341,7 @@ class AnthropicWrapper implements IProviderWrapper {
     if (params.enrich) {
       return data;
     } else {
-      return convertToStandardModelList(data);
+      return convertToStandardStaticModelList(data);
     }
   }
 
