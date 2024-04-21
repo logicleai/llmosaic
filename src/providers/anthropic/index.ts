@@ -22,45 +22,6 @@ import { getUnixTimestamp } from '../../utils/getUnixTimestamp';
 import { ChatCompletion } from 'openai/resources/chat/completions'
 import { modelEnrichmentData } from './models';
 
-const modelStandardData: Model[] = [
-  {
-    id: 'claude-3-opus-20240229',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-3-sonnet-20240229',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-3-haiku-20240307',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-2.1',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-2.0',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-instant-1.2',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-];
-
 class AnthropicWrapper implements IProviderWrapper {
   private client: Anthropic;
 
@@ -372,7 +333,7 @@ class AnthropicWrapper implements IProviderWrapper {
   ):Promise<ModelList>{
     const data = {
       object: "string",
-      data: modelStandardData,
+      data: modelEnrichmentData,
     } as ModelList;
     // Check if the 'enrich' parameter is true
     if (params.enrich) {
