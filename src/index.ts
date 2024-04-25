@@ -1,5 +1,6 @@
 import OpenAIWrapper from './providers/openai';
 import AnthropicWrapper from './providers/anthropic';
+import TogetherWrapper from './providers/together';
 //import AzureWrapper from './providers/azure';
 //import OllamaWrapper from './providers/ollama';
 
@@ -51,7 +52,7 @@ export class Provider {
       [ProviderType.LocalAI]: (apiKey, baseUrl) =>
       new OpenAIWrapper(apiKey, baseUrl),
       [ProviderType.TogetherAI]: (apiKey, baseUrl) =>
-      new OpenAIWrapper(apiKey, baseUrl),
+      new TogetherWrapper(apiKey, baseUrl),
   };
 
   private client: IProviderWrapper;
