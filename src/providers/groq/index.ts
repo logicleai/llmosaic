@@ -1,28 +1,14 @@
 import OpenAI from 'openai';
 import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../../types';
+import { enrichToStandardDynamicModelList } from '../../utils/modelsConversion';
+import { modelEnrichmentData } from './models';
 import {
   HandlerModelParams,
   HandlerParams,
   ResultStreaming,
   ResultNotStreaming,
   Result,
-  Model,
-  EnrichedModel,
 } from '../../types';
-
-interface GroqModel {
-  id: string;
-  object: string;
-  created: number;
-  owned_by: string;
-  active: boolean;
-  context_window: number;
-}
-
-export interface GroqStandardModelList {
-    object: string;
-    data: GroqModel[];
-  }
 
 class GroqWrapper implements IProviderWrapper {
   private client: OpenAI;
@@ -37,20 +23,6 @@ class GroqWrapper implements IProviderWrapper {
     });
   }
 
-  /*private convertGroqToStandardModelList(togetherModels: TogetherModelArray): StandardModelList {
-    const standardModels: Model[] = togetherModels.map(togetherModel => ({
-      id: togetherModel.id,
-      object: togetherModel.object,
-      created: togetherModel.created,
-      owned_by: togetherModel.organization,
-    }));
-    
-    return {
-      object: "list",
-      data: standardModels,
-    };
-  }*/
-
   async models(params: HandlerModelParams & { enrich: true }):Promise<EnrichedModelList>;
 
   async models(params: HandlerModelParams & { enrich?: false }):Promise<StandardModelList>;
@@ -58,10 +30,14 @@ class GroqWrapper implements IProviderWrapper {
   async models(
     params: HandlerModelParams & { enrich?: boolean },
   ):Promise<ModelList>{
+    const standardModelList = {
+      object: "string",
+      data: (await this.client.models.list()).data,
+    } as ModelList;
     if (params.enrich) {
-      return this.client.models.list();
+      return enrichToStandardDynamicModelList(standardModelList, modelEnrichmentData);;
     } else {
-      return this.client.models.list();
+      return standardModelList;
     }
   }
 
