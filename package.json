@@ -1,6 +1,6 @@
 {
   "name": "@logicleai/llmosaic",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "JavaScript toolkit for calling LLM APIs in OpenAI format",
   "main": "dist/index.js",
   "scripts": {
@@ -28,19 +28,15 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.1",
-    "@azure/openai": "^1.0.0-beta.12",
-    "cohere-ai": "^6.2.2",
-    "eventsource": "^2.0.2",
+    "@anthropic-ai/sdk": "^0.20.7",
     "js-tiktoken": "^1.0.7",
-    "openai": "^4.33.0",
-    "replicate": "^0.20.1"
+    "openai": "^4.38.5"
   },
   "engines": {
     "node": ">=18"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/enricobellato/llmosaic.git"
+    "url": "https://github.com/logicleai/llmosaic.git"
   }
 }

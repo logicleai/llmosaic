@@ -7,7 +7,7 @@ import { Tool, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resourc
 
 import { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources';
 
-import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../types';
+import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../../types';
 import {
   HandlerModelParams,
   HandlerParams,
@@ -16,138 +16,13 @@ import {
   Result,
   Model,
   EnrichedModel,
-  ModelEnrichmentDataType,
-} from '../types';
+} from '../../types';
 
-import { getUnixTimestamp } from '../utils/getUnixTimestamp';
-
+import { getUnixTimestamp } from '../../utils/getUnixTimestamp';
 import { ChatCompletion } from 'openai/resources/chat/completions'
+import { modelEnrichmentData } from './models';
 
-const modelEnrichmentData:ModelEnrichmentDataType = {
-  'claude-3-opus-20240229': {
-    name: 'Claude 3 Opus',
-    description: 'Most powerful model for highly complex tasks',
-    context_length: 200000,
-    tokenizer: 'anthropic',
-    capabilities: {
-      vision: true,
-      function_calling: true
-    },
-    prices: {
-      input: 15,
-      output: 75
-    }
-  },
-  'claude-3-sonnet-20240229': {
-    name: 'Claude 3 Sonnet',
-    description: 'Ideal balance of intelligence and speed for enterprise workloads',
-    context_length: 200000,
-    tokenizer: 'anthropic',
-    capabilities: {
-      vision: true,
-      function_calling: true
-    },
-    prices: {
-      input: 3,
-      output: 15
-    }
-  },
-  'claude-3-haiku-20240307': {
-    name: 'Claude 3 Haiku',
-    description: 'Fastest and most compact model for near-instant responsiveness',
-    context_length: 200000,
-    tokenizer: 'anthropic',
-    capabilities: {
-      vision: true,
-      function_calling: true
-    },
-    prices: {
-      input: 0.25,
-      output: 1.25
-    }
-  },
-  'claude-2.1': {
-    name: 'Claude 2.1',
-    description: 'Updated version of Claude 2 with improved accuracy',
-    context_length: 200000,
-    tokenizer: 'anthropic',
-    capabilities: {
-      vision: false,
-      function_calling: false
-    },
-    prices: {
-      input: 8,
-      output: 24
-    }
-  },
-  'claude-2.0': {
-    name: 'Claude 2',
-    description: 'Predecessor to Claude 3, offering strong all-round performance',
-    context_length: 100000,
-    tokenizer: 'anthropic',
-    capabilities: {
-      vision: false,
-      function_calling: false
-    },
-    prices: {
-      input: 8,
-      output: 24
-    }
-  },
-  'claude-instant-1.2': {
-    name: 'Claude Instant 1.2',
-    description: 'Our cheapest small and fast model, a predecessor of Claude Haiku.',
-    context_length: 100000,
-    tokenizer: 'anthropic',
-    capabilities: {
-      vision: false,
-      function_calling: false
-    },
-    prices: {
-      input: 0.8,
-      output: 2.4
-    }
-  },
-};
-
-const modelStandardData: Model[] = [
-  {
-    id: 'claude-3-opus-20240229',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-3-sonnet-20240229',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-3-haiku-20240307',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-2.1',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-2.0',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-  {
-    id: 'claude-instant-1.2',
-    object: 'model',
-    created: 1698959748,
-    owned_by: 'system'
-  },
-];
+import { convertToStandardStaticModelList } from '../../utils/modelsConversion';
 
 class AnthropicWrapper implements IProviderWrapper {
   private client: Anthropic;
@@ -460,13 +335,13 @@ class AnthropicWrapper implements IProviderWrapper {
   ):Promise<ModelList>{
     const data = {
       object: "string",
-      data: modelStandardData,
-    } as ModelList;
+      data: modelEnrichmentData,
+    } as EnrichedModelList;
     // Check if the 'enrich' parameter is true
     if (params.enrich) {
-      return this.enrichModels(data);
-    } else {
       return data;
+    } else {
+      return convertToStandardStaticModelList(data);
     }
   }
 
