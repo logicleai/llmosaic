@@ -5,8 +5,33 @@ import {
   HandlerParams,
   ResultStreaming,
   ResultNotStreaming,
-  Result
+  Result,
+  Model,
+  EnrichedModel,
 } from '../../types';
+
+interface TogetherPricing {
+  hourly: number;
+  input: number;
+  output: number;
+  base: number;
+  finetune: number;
+}
+
+interface TogetherModel {
+  id: string;
+  object: string;
+  created: number;
+  type: string;
+  display_name: string;
+  organization: string;
+  link: string;
+  license: string;
+  context_length?: number;
+  pricing: TogetherPricing;
+}
+
+type TogetherModelArray = TogetherModel[];
 
 class TogetherWrapper implements IProviderWrapper {
   private together: OpenAI;
@@ -21,7 +46,7 @@ class TogetherWrapper implements IProviderWrapper {
     });
   }
 
-  private async fetchModels(): Promise<any> {
+  private async fetchModels(): Promise<TogetherModelArray> {
     try {
       const response = await fetch(`${this.together.baseURL}/models`, {
         headers: {
@@ -38,6 +63,43 @@ class TogetherWrapper implements IProviderWrapper {
     }
   }
 
+  private convertTogetherModelArrayToStandardModelList(togetherModels: TogetherModelArray): StandardModelList {
+    const standardModels: Model[] = togetherModels.map(togetherModel => ({
+      id: togetherModel.id,
+      object: togetherModel.object,
+      created: togetherModel.created,
+      owned_by: togetherModel.organization,
+    }));
+    
+    return {
+      object: "list",
+      data: standardModels,
+    };
+  }
+
+  private convertTogetherModelArrayToEnrichedModelList(togetherModels: TogetherModelArray): EnrichedModelList {
+    const enrichedModels: EnrichedModel[] = togetherModels.map(togetherModel => ({
+      id: togetherModel.id,
+      object: togetherModel.object,
+      created: togetherModel.created,
+      owned_by: togetherModel.organization,
+      name: togetherModel.display_name,
+      description: null,
+      context_length: togetherModel.context_length ?? null,
+      tokenizer: null,
+      capabilities: null,
+      prices: {
+        input: togetherModel.pricing.input,
+        output: togetherModel.pricing.output
+      }
+    }));
+    
+    return {
+      object: "list",
+      data: enrichedModels,
+    };
+  }
+
   async models(params: HandlerModelParams & { enrich: true }):Promise<EnrichedModelList>;
 
   async models(params: HandlerModelParams & { enrich?: false }):Promise<StandardModelList>;
@@ -45,15 +107,10 @@ class TogetherWrapper implements IProviderWrapper {
   async models(
     params: HandlerModelParams & { enrich?: boolean },
   ):Promise<ModelList>{
-    const standardModelList = {
-      object: "string",
-      data: (await this.fetchModels()) as any,
-    } as ModelList;
-    console.log(await this.fetchModels());
     if (params.enrich) {
-      return standardModelList;
+      return this.convertTogetherModelArrayToEnrichedModelList(await this.fetchModels());
     } else {
-      return standardModelList;
+      return this.convertTogetherModelArrayToStandardModelList(await this.fetchModels());
     }
   }
 
