@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../../types';
+import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList, Model } from '../../types';
 import { enrichToStandardDynamicModelList } from '../../utils/modelsConversion';
 import { modelEnrichmentData } from './models';
 import {
@@ -9,6 +9,11 @@ import {
   ResultNotStreaming,
   Result,
 } from '../../types';
+
+interface GroqModel extends Model {
+  active: boolean;
+  context_window: number;
+}
 
 class GroqWrapper implements IProviderWrapper {
   private client: OpenAI;
@@ -30,9 +35,10 @@ class GroqWrapper implements IProviderWrapper {
   async models(
     params: HandlerModelParams & { enrich?: boolean },
   ):Promise<ModelList>{
+    const models = ((await this.client.models.list()).data as GroqModel[]).filter(model => model.active).map(({ active, context_window, ...rest }) => rest); // Filter out objects with active: false and exclude active and context_window properties
     const standardModelList = {
       object: "string",
-      data: (await this.client.models.list()).data,
+      data: models,
     } as ModelList;
     if (params.enrich) {
       return enrichToStandardDynamicModelList(standardModelList, modelEnrichmentData);;
