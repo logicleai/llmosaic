@@ -1,6 +1,7 @@
 import OpenAIWrapper from './providers/openai';
 import AnthropicWrapper from './providers/anthropic';
 import TogetherWrapper from './providers/together';
+import GroqWrapper from './providers/groq';
 //import AzureWrapper from './providers/azure';
 //import OllamaWrapper from './providers/ollama';
 
@@ -33,6 +34,7 @@ export enum ProviderType {
 /*  Ollama = 'ollama',*/
   LocalAI = 'localai',
   TogetherAI = 'togetherai',
+  Groq = 'groq',
 }
 
 export class Provider {
@@ -53,6 +55,8 @@ export class Provider {
       new OpenAIWrapper(apiKey, baseUrl),
       [ProviderType.TogetherAI]: (apiKey, baseUrl) =>
       new TogetherWrapper(apiKey, baseUrl),
+      [ProviderType.Groq]: (apiKey, baseUrl) =>
+      new GroqWrapper(apiKey, baseUrl),
   };
 
   private client: IProviderWrapper;

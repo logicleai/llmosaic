@@ -33,7 +33,7 @@ export function enrichToStandardDynamicModelList(standardModelList: StandardMode
 
     // If there is enrichment data, merge it with the model
     if (enrichment) {
-      return { ...model, ...enrichment };
+      return { ...enrichment };
     }
 
     // If there isn't any enrichment data, fill the extra fields with null
