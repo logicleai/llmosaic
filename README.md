@@ -11,6 +11,15 @@
     </a>
 </h4>
 
+## Usage
+```shell
+npm install @logicleai/llmosaic
+```
+
+## Supported Providers
+
+
+
 ## Development
 
 ### Clone the repo
