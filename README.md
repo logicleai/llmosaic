@@ -70,7 +70,7 @@ main();
 |     groq     |        ✅       |       ✅       |      ✅     |
 |    localai   |        ✅       |       ✅       |      ✅     |
 
-## Development
+## Contributing
 
 ### Clone the repo
 ```
