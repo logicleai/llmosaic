@@ -22,7 +22,7 @@ npm install @logicleai/llmosaic
 ```ts
 import { Provider, ProviderType } from '@logicleai/llmosaic';
 
-const openai = new OpenAI({
+const openai = new Provider({
   apiKey: process.env['OPENAI_API_KEY'],
   providerType: ProviderType.Anthropic,
 });
@@ -42,12 +42,12 @@ main();
 ```ts
 import { Provider, ProviderType } from '@logicleai/llmosaic';
 
-const openai = new OpenAI({
+const openai = new Provider({
   providerType: ProviderType.TogetherAI,
 });
 
 async function main() {
-  const chatCompletion = await openai.completion({
+  const stream = await openai.completion({
     messages: [{ role: 'user', content: 'Say this is a test' }],
     model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
     stream: true,
