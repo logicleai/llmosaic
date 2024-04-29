@@ -42,7 +42,7 @@ export class Provider {
   private baseUrl: string | undefined;
   private providerType: ProviderType;
 
-  private static PROVIDER_TYPE_HANDLER_MAPPINGS: Record<ProviderType,(apiKey: string, baseUrl: string | undefined) => IProviderWrapper> = {
+  private static PROVIDER_TYPE_HANDLER_MAPPINGS: Record<ProviderType,(apiKey: string | undefined, baseUrl: string | undefined) => IProviderWrapper> = {
       [ProviderType.OpenAI]: (apiKey, baseUrl) =>
       new OpenAIWrapper(apiKey, baseUrl),
       [ProviderType.Anthropic]: (apiKey, baseUrl) =>
