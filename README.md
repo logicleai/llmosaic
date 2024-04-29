@@ -15,7 +15,7 @@
 
 ### Clone the repo
 ```
-git clone https://github.com/enricobellato/llmosaic.git
+git clone https://github.com/logicleai/llmosaic.git
 ```
 
 ### Install dependencies
