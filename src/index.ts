@@ -22,7 +22,7 @@ import {
 } from './types';
 
 interface ProviderParams {
-  apiKey: string;
+  apiKey?: string;
   baseUrl?: string;
   providerType: ProviderType;
 }
@@ -38,7 +38,7 @@ export enum ProviderType {
 }
 
 export class Provider {
-  private apiKey: string;
+  private apiKey: string | undefined;
   private baseUrl: string | undefined;
   private providerType: ProviderType;
 
@@ -62,7 +62,7 @@ export class Provider {
   private client: IProviderWrapper;
 
   constructor(params: ProviderParams) {
-    this.apiKey = params.apiKey;
+    this.apiKey = params.apiKey ?? undefined;
     this.baseUrl = params.baseUrl ?? undefined;
     this.providerType = params.providerType;
     const clientCreationFunction =
