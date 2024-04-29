@@ -24,7 +24,7 @@ import {
 interface ProviderParams {
   apiKey?: string;
   baseUrl?: string;
-  providerType: ProviderType;
+  providerType?: ProviderType;
 }
 
 export enum ProviderType {
@@ -64,7 +64,7 @@ export class Provider {
   constructor(params: ProviderParams) {
     this.apiKey = params.apiKey ?? undefined;
     this.baseUrl = params.baseUrl ?? undefined;
-    this.providerType = params.providerType;
+    this.providerType = params.providerType ?? ProviderType.OpenAI;
     const clientCreationFunction =
       Provider.PROVIDER_TYPE_HANDLER_MAPPINGS[this.providerType];
 
@@ -76,10 +76,6 @@ export class Provider {
     }
     // Instantiate the correct provider wrapper
     this.client = clientCreationFunction(this.apiKey, this.baseUrl);
-  }
-
-  private enrichModels(modelList: ModelList): ModelList {
-    return modelList;
   }
 
   async models(params: HandlerModelParamsEnriched & { enrich: true }):Promise<EnrichedModelList>;
@@ -97,11 +93,11 @@ export class Provider {
   }
 
   async completion(
-    params: HandlerParamsNotStreaming & { stream: false },
+    params: HandlerParamsNotStreaming & { stream?: false },
   ): Promise<ResultNotStreaming>;
 
   async completion(
-    params: HandlerParamsStreaming & { stream?: true },
+    params: HandlerParamsStreaming & { stream: true },
   ): Promise<ResultStreaming>;
 
   async completion(params: HandlerParams): Promise<Result> {
