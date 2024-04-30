@@ -22,9 +22,9 @@ import {
 } from './types';
 
 interface ProviderParams {
-  apiKey: string;
+  apiKey?: string;
   baseUrl?: string;
-  providerType: ProviderType;
+  providerType?: ProviderType;
 }
 
 export enum ProviderType {
@@ -38,11 +38,11 @@ export enum ProviderType {
 }
 
 export class Provider {
-  private apiKey: string;
+  private apiKey: string | undefined;
   private baseUrl: string | undefined;
   private providerType: ProviderType;
 
-  private static PROVIDER_TYPE_HANDLER_MAPPINGS: Record<ProviderType,(apiKey: string, baseUrl: string | undefined) => IProviderWrapper> = {
+  private static PROVIDER_TYPE_HANDLER_MAPPINGS: Record<ProviderType,(apiKey: string | undefined, baseUrl: string | undefined) => IProviderWrapper> = {
       [ProviderType.OpenAI]: (apiKey, baseUrl) =>
       new OpenAIWrapper(apiKey, baseUrl),
       [ProviderType.Anthropic]: (apiKey, baseUrl) =>
@@ -62,9 +62,9 @@ export class Provider {
   private client: IProviderWrapper;
 
   constructor(params: ProviderParams) {
-    this.apiKey = params.apiKey;
+    this.apiKey = params.apiKey ?? undefined;
     this.baseUrl = params.baseUrl ?? undefined;
-    this.providerType = params.providerType;
+    this.providerType = params.providerType ?? ProviderType.OpenAI;
     const clientCreationFunction =
       Provider.PROVIDER_TYPE_HANDLER_MAPPINGS[this.providerType];
 
@@ -76,10 +76,6 @@ export class Provider {
     }
     // Instantiate the correct provider wrapper
     this.client = clientCreationFunction(this.apiKey, this.baseUrl);
-  }
-
-  private enrichModels(modelList: ModelList): ModelList {
-    return modelList;
   }
 
   async models(params: HandlerModelParamsEnriched & { enrich: true }):Promise<EnrichedModelList>;
@@ -97,11 +93,11 @@ export class Provider {
   }
 
   async completion(
-    params: HandlerParamsNotStreaming & { stream: false },
+    params: HandlerParamsNotStreaming & { stream?: false },
   ): Promise<ResultNotStreaming>;
 
   async completion(
-    params: HandlerParamsStreaming & { stream?: true },
+    params: HandlerParamsStreaming & { stream: true },
   ): Promise<ResultStreaming>;
 
   async completion(params: HandlerParams): Promise<Result> {
