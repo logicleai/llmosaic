@@ -297,9 +297,6 @@ class AnthropicWrapper implements IProviderWrapper {
 
   private validateAndGenerateStreamingParamsArray(params: HandlerParams): MessageCreateParamsStreaming {
 
-    if (params.tools && params.tools.length > 0) {
-      throw new Error('Streaming cannot be used in conjunction with tools, see the official docs for more informations: https://docs.anthropic.com/claude/docs/tool-use');
-    }
     // Validate individual parameters using helper functions
     const maxTokens = this.validateMaxTokens(params.max_tokens);
     const temperature = this.validateTemperature(params.temperature);
