@@ -297,8 +297,6 @@ class AnthropicWrapper implements IProviderWrapper {
     const tools = this.validateTools(params.tools);
     const system = this.extractSystemMessageContent(params.messages);
     const tool_choice = this.convertToolChoiceToAnthropic(params.tool_choice);
-    // OPENAI: {"type": "function", "function": {"name": "my_function"}}
-    // ANTHROPIC: {"type": "tool", "name": "record_summary"}
 
     // Build the validatedParams object without mutating the input object
     const validatedParams: MessageCreateParamsNonStreaming = {
@@ -309,7 +307,7 @@ class AnthropicWrapper implements IProviderWrapper {
       ...(tools !== undefined && { tools }), // only add tools if it's defined
       ...(temperature !== undefined && { temperature }), // only add temperature if it's defined
       ...(system !== undefined && { system }), // only add system prompt if it's defined
-      ...(tool_choice !== undefined && { tool_choice }), // only add tools if it's defined
+      ...(tool_choice !== undefined && { tool_choice }), // only add tool_choice if it's defined
     };
   
     // Copy other optional parameters if they are defined
