@@ -40,7 +40,7 @@ export const modelEnrichmentData:EnrichedModel[] = [
   {
     name: 'Claude 3.5 Sonnet',
     description: 'Most intelligent model yet',
-    id: 'claude-3-5-sonnet-20240620',
+    id: 'claude-3-5-sonnet',
     object: 'model',
     created: 1698959748,
     owned_by: 'anthropic',
