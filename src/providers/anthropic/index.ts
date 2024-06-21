@@ -213,7 +213,7 @@ class AnthropicWrapper implements IProviderWrapper {
     }
   }
   
-  private convertAnthropicStreamtoOpenAI(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string): Stream<OpenAI.Chat.Completions.ChatCompletionChunk> {
+  private convertAnthropicStreamtoOpenAI(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string, includeUsage: boolean): Stream<OpenAI.Chat.Completions.ChatCompletionChunk> {
     const controller = new AbortController;
     const iterator = () => this.internalIterator(stream,model);
     return new Stream(iterator, controller);
@@ -320,6 +320,14 @@ class AnthropicWrapper implements IProviderWrapper {
     return validatedParams;
   }
 
+  private checkIncludeUsage(params: HandlerParams): boolean {
+    if (params.stream_options?.include_usage === true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   private validateAndGenerateStreamingParamsArray(params: HandlerParams): MessageCreateParamsStreaming {
 
     // Validate individual parameters using helper functions
@@ -377,10 +385,11 @@ class AnthropicWrapper implements IProviderWrapper {
     if (params.stream) {
       // Process streaming responses
       const validatedAnthropicParams = this.validateAndGenerateStreamingParamsArray(params);
+      const includeUsage = this.checkIncludeUsage(params);
       const response = await this.client.messages.create({
         ...validatedAnthropicParams
       });
-      return this.convertAnthropicStreamtoOpenAI(response, params.model);
+      return this.convertAnthropicStreamtoOpenAI(response, params.model, includeUsage);
     } else {
       // Process non-streaming responses
       const validatedAnthropicParams = this.validateAndGenerateNonStreamingParamsArray(params);
