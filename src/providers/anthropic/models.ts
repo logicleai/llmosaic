@@ -2,8 +2,26 @@ import { EnrichedModel } from '../../types';
 
 export const modelEnrichmentData:EnrichedModel[] = [
   {
+    name: 'Claude 3.5 Sonnet',
+    description: 'Most intelligent model yet',
+    id: 'claude-3-5-sonnet-20240620',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'anthropic',
+    context_length: 200000,
+    tokenizer: 'anthropic',
+    capabilities: {
+      vision: true,
+      function_calling: true
+    },
+    prices: {
+      input: 3,
+      output: 15
+    }
+  },
+  {
     name: 'Claude 3 Opus',
-    description: 'Most powerful model for highly complex tasks',
+    description: 'Powerful model for highly complex tasks',
     id: 'claude-3-opus-20240229',
     object: 'model',
     created: 1698959748,
@@ -21,7 +39,7 @@ export const modelEnrichmentData:EnrichedModel[] = [
   },
   {
     name: 'Claude 3 Sonnet',
-    description: 'Ideal balance of intelligence and speed for enterprise workloads',
+    description: 'Balance of intelligence and speed',
     id: 'claude-3-sonnet-20240229',
     object: 'model',
     created: 1698959748,

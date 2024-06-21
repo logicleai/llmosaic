@@ -38,8 +38,26 @@ export const modelEnrichmentData:EnrichedModel[] = [
     }
   },
   {
+    name: 'Claude 3.5 Sonnet',
+    description: 'Most intelligent model yet',
+    id: 'claude-3-5-sonnet-20240620',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'anthropic',
+    context_length: 200000,
+    tokenizer: 'anthropic',
+    capabilities: {
+      vision: true,
+      function_calling: true
+    },
+    prices: {
+      input: 3,
+      output: 15
+    }
+  },
+  {
     name: 'Claude 3 Opus',
-    description: 'Most powerful model for highly complex tasks',
+    description: 'Powerful model for highly complex tasks',
     id: 'claude-3-opus',
     object: 'model',
     created: 1698959748,
@@ -57,7 +75,7 @@ export const modelEnrichmentData:EnrichedModel[] = [
   },
   {
     name: 'Claude 3 Sonnet',
-    description: 'Ideal balance of intelligence and speed for enterprise workloads',
+    description: 'Balance of intelligence and speed',
     id: 'claude-3-sonnet',
     object: 'model',
     created: 1698959748,
@@ -89,6 +107,60 @@ export const modelEnrichmentData:EnrichedModel[] = [
     prices: {
       input: 0.25,
       output: 1.25
+    }
+  },
+  {
+    name: 'Claude 2.1',
+    description: 'Updated version of Claude 2 with improved accuracy',
+    id: 'claude-2.1',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'anthropic',
+    context_length: 200000,
+    tokenizer: 'anthropic',
+    capabilities: {
+      vision: false,
+      function_calling: false
+    },
+    prices: {
+      input: 8,
+      output: 24
+    }
+  },
+  {
+    name: 'Claude 2',
+    description: 'Predecessor to Claude 3, offering strong all-round performance',
+    id: 'claude-2.0',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'anthropic',
+    context_length: 100000,
+    tokenizer: 'anthropic',
+    capabilities: {
+      vision: false,
+      function_calling: false
+    },
+    prices: {
+      input: 8,
+      output: 24
+    }
+  },
+  {
+    name: 'Claude Instant 1.2',
+    description: 'Our cheapest small and fast model, a predecessor of Claude Haiku.',
+    id: 'claude-instant-1.2',
+    object: 'model',
+    created: 1698959748,
+    owned_by: 'anthropic',
+    context_length: 100000,
+    tokenizer: 'anthropic',
+    capabilities: {
+      vision: false,
+      function_calling: false
+    },
+    prices: {
+      input: 0.8,
+      output: 2.4
     }
   }
 ];
