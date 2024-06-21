@@ -3,9 +3,7 @@ import OpenAI from 'openai';
 
 import { Stream } from 'openai/streaming';
 
-import { Tool, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources/beta/tools/messages';
-
-import { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources';
+import { MessageCreateParamsStreaming, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 
 import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../../types';
 import {
@@ -66,7 +64,7 @@ class AnthropicWrapper implements IProviderWrapper {
     return undefined; // This line is actually optional as the function would return undefined by default if no return statement is executed.
   }
   
-  private convertFinishReasonStreaming(anthropicStopReason: Anthropic.MessageDeltaEvent.Delta['stop_reason']):OpenAI.ChatCompletionChunk.Choice['finish_reason'] {
+  private convertFinishReasonStreaming(anthropicStopReason: Anthropic.RawMessageDeltaEvent.Delta['stop_reason']):OpenAI.ChatCompletionChunk.Choice['finish_reason'] {
     if (anthropicStopReason == 'max_tokens') {
       return 'length'
     } else if (anthropicStopReason == 'end_turn') {
@@ -76,7 +74,7 @@ class AnthropicWrapper implements IProviderWrapper {
     }
   }
 
-  private convertFinishReasonNoStreaming(anthropicStopReason: Anthropic.Beta.Tools.ToolsBetaMessage['stop_reason']):ChatCompletion.Choice['finish_reason'] {
+  private convertFinishReasonNoStreaming(anthropicStopReason: Anthropic.RawMessageDeltaEvent.Delta['stop_reason']):ChatCompletion.Choice['finish_reason'] {
     if (anthropicStopReason == 'max_tokens') {
       return 'length'
     } else if (anthropicStopReason == 'tool_use') {
@@ -87,7 +85,7 @@ class AnthropicWrapper implements IProviderWrapper {
   }
 
   private toResponse(
-    anthropicResponse: Anthropic.Beta.Tools.ToolsBetaMessage
+    anthropicResponse: Anthropic.Message
   ): ChatCompletion {
     const basicChoice:ChatCompletion.Choice = {
       message: {
@@ -133,7 +131,7 @@ class AnthropicWrapper implements IProviderWrapper {
     };
   }
 
-  private convertOpenAIToolToAnthropicTool(tool: OpenAI.ChatCompletionTool): Tool {
+  private convertOpenAIToolToAnthropicTool(tool: OpenAI.ChatCompletionTool): Anthropic.Tool {
     return {
       name: tool.function.name,
       description: tool.function.description,
@@ -141,7 +139,7 @@ class AnthropicWrapper implements IProviderWrapper {
     }
   }
 
-  private mapParametersToInputSchema(parameters: OpenAI.ChatCompletionTool['function']['parameters']): Tool.InputSchema {
+  private mapParametersToInputSchema(parameters: OpenAI.ChatCompletionTool['function']['parameters']): Anthropic.Tool.InputSchema {
     const properties: unknown = parameters?.properties
     const required: unknown = parameters?.required
     return {
@@ -179,7 +177,7 @@ class AnthropicWrapper implements IProviderWrapper {
       chunk.choices = [
         {
           index: 0,
-          delta: { content: event.delta.text},
+          delta: { content: event.delta.type === 'text_delta' ? event.delta.text : '' },
           logprobs: null,
           finish_reason: null
         }
@@ -257,7 +255,7 @@ class AnthropicWrapper implements IProviderWrapper {
     return temperature;
   }
   
-  private validateTools(tools?: OpenAI.ChatCompletionTool[]): Tool[] | undefined {
+  private validateTools(tools?: OpenAI.ChatCompletionTool[]): Anthropic.Tool[] | undefined {
     if (tools === null) {
       return undefined;
     } else if (tools) {
@@ -359,7 +357,7 @@ class AnthropicWrapper implements IProviderWrapper {
     } else {
       // Process non-streaming responses
       const validatedAnthropicParams = this.validateAndGenerateNonStreamingParamsArray(params);
-      const response = await this.client.beta.tools.messages.create({
+      const response = await this.client.messages.create({
         ...validatedAnthropicParams
       });
       return this.toResponse(response);
