@@ -149,7 +149,7 @@ class AnthropicWrapper implements IProviderWrapper {
     };
   }
 
-  private convertStreamEventToOpenAIChunk(event:Anthropic.Messages.MessageStreamEvent, model:string, messageId: string):OpenAI.Chat.Completions.ChatCompletionChunk {
+  private convertStreamEventToOpenAIChunk(event:Anthropic.Messages.MessageStreamEvent, model:string, messageId: string, includeUsage: boolean):OpenAI.Chat.Completions.ChatCompletionChunk {
     const chunk: OpenAI.Chat.Completions.ChatCompletionChunk = {
       id: messageId, // We need to populate this from the input event
       object: 'chat.completion.chunk',
@@ -157,6 +157,7 @@ class AnthropicWrapper implements IProviderWrapper {
       model: model, // We will populate this from the input event
       system_fingerprint: undefined,
       choices: [], // We will create this from the input event content
+      usage: undefined
     };
     //console.log(event);
     if (
@@ -169,7 +170,7 @@ class AnthropicWrapper implements IProviderWrapper {
           logprobs: null,
           finish_reason: null
         }
-      ]
+      ];
     }
     if (
       event.type === 'content_block_delta'
@@ -181,7 +182,7 @@ class AnthropicWrapper implements IProviderWrapper {
           logprobs: null,
           finish_reason: null
         }
-      ]
+      ];
     }
     if (
       event.type === 'message_delta'
@@ -193,12 +194,19 @@ class AnthropicWrapper implements IProviderWrapper {
           logprobs: null,
           finish_reason: this.convertFinishReasonStreaming(event.delta.stop_reason)
         }
-      ]
+      ];
+      if (includeUsage) {
+        chunk.usage = {
+          completion_tokens: event.usage.output_tokens,
+          prompt_tokens: 10,
+          total_tokens: (10 + event.usage.output_tokens),
+        };
+      }
     }
     return chunk
   }
 
-  private async* internalIterator(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string): AsyncIterator<OpenAI.Chat.Completions.ChatCompletionChunk> {
+  private async* internalIterator(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string, includeUsage: boolean): AsyncIterator<OpenAI.Chat.Completions.ChatCompletionChunk> {
     const validEventTypes = new Set(['message_start', 'content_block_delta', 'message_delta']);
     let messageId: string | undefined;
     messageId = '';
@@ -208,14 +216,14 @@ class AnthropicWrapper implements IProviderWrapper {
         messageId = item.message.id;
       }
       if (validEventTypes.has(item.type)) {
-        yield this.convertStreamEventToOpenAIChunk(item, model, messageId);
+        yield this.convertStreamEventToOpenAIChunk(item, model, messageId, includeUsage);
       }
     }
   }
   
   private convertAnthropicStreamtoOpenAI(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string, includeUsage: boolean): Stream<OpenAI.Chat.Completions.ChatCompletionChunk> {
     const controller = new AbortController;
-    const iterator = () => this.internalIterator(stream,model);
+    const iterator = () => this.internalIterator(stream,model,includeUsage);
     return new Stream(iterator, controller);
   }
 
