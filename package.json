@@ -30,7 +30,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",
     "js-tiktoken": "^1.0.7",
-    "openai": "^4.38.5"
+    "openai": "^4.52.0"
   },
   "engines": {
     "node": ">=18"
