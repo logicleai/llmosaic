@@ -28,7 +28,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.7",
+    "@anthropic-ai/sdk": "^0.20.9",
     "js-tiktoken": "^1.0.7",
     "openai": "^4.38.5"
   },
