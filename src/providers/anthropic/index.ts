@@ -236,6 +236,31 @@ class AnthropicWrapper implements IProviderWrapper {
     };
   }
 
+  private convertToolChoiceToAnthropic(
+    openAIToolChoice: OpenAI.ChatCompletionToolChoiceOption | undefined
+  ): Anthropic.MessageCreateParams.ToolChoiceAuto | Anthropic.MessageCreateParams.ToolChoiceAny | Anthropic.MessageCreateParams.ToolChoiceTool | undefined {
+    if (!openAIToolChoice) {
+      return undefined;
+    }
+  
+    if (openAIToolChoice === 'none' || openAIToolChoice === 'auto') {
+      return { type: 'auto' };
+    }
+  
+    if (openAIToolChoice === 'required') {
+      return { type: 'any' };
+    }
+  
+    if (typeof openAIToolChoice === 'object' && openAIToolChoice.type === 'function') {
+      return {
+        type: 'tool',
+        name: openAIToolChoice.function.name
+      };
+    }
+  
+    throw new Error('Invalid tool_choice value');
+  }
+
   private validateMaxTokens(maxTokens?: number | null): number {
     if (typeof maxTokens !== 'number' || maxTokens <= 0 || maxTokens === undefined || maxTokens === null) {
       return 1024; // default value
@@ -263,7 +288,7 @@ class AnthropicWrapper implements IProviderWrapper {
     } else {
       return undefined; // undefined if not specified
     }
-  }  
+  }
   
   private validateAndGenerateNonStreamingParamsArray(params: HandlerParams): MessageCreateParamsNonStreaming {
     // Validate individual parameters using helper functions
@@ -271,16 +296,20 @@ class AnthropicWrapper implements IProviderWrapper {
     const temperature = this.validateTemperature(params.temperature);
     const tools = this.validateTools(params.tools);
     const system = this.extractSystemMessageContent(params.messages);
-  
+    const tool_choice = this.convertToolChoiceToAnthropic(params.tool_choice);
+    // OPENAI: {"type": "function", "function": {"name": "my_function"}}
+    // ANTHROPIC: {"type": "tool", "name": "record_summary"}
+
     // Build the validatedParams object without mutating the input object
     const validatedParams: MessageCreateParamsNonStreaming = {
       messages: this.toAnthropicPrompt(params.messages),
       model: params.model,
       max_tokens: maxTokens,
       stream: false,
-      ...(tools !== undefined && { tools }), // only add temperature if it's defined
+      ...(tools !== undefined && { tools }), // only add tools if it's defined
       ...(temperature !== undefined && { temperature }), // only add temperature if it's defined
       ...(system !== undefined && { system }), // only add system prompt if it's defined
+      ...(tool_choice !== undefined && { tool_choice }), // only add tools if it's defined
     };
   
     // Copy other optional parameters if they are defined
