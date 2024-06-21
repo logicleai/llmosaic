@@ -149,7 +149,7 @@ class AnthropicWrapper implements IProviderWrapper {
     };
   }
 
-  private convertStreamEventToOpenAIChunk(event:Anthropic.Messages.MessageStreamEvent, model:string, messageId: string, includeUsage: boolean):OpenAI.Chat.Completions.ChatCompletionChunk {
+  private convertStreamEventToOpenAIChunk(event:Anthropic.Messages.MessageStreamEvent, model:string, messageId: string, includeUsage: boolean, input_tokens: number):OpenAI.Chat.Completions.ChatCompletionChunk {
     const chunk: OpenAI.Chat.Completions.ChatCompletionChunk = {
       id: messageId, // We need to populate this from the input event
       object: 'chat.completion.chunk',
@@ -198,8 +198,8 @@ class AnthropicWrapper implements IProviderWrapper {
       if (includeUsage) {
         chunk.usage = {
           completion_tokens: event.usage.output_tokens,
-          prompt_tokens: 10,
-          total_tokens: (10 + event.usage.output_tokens),
+          prompt_tokens: input_tokens,
+          total_tokens: (input_tokens + event.usage.output_tokens),
         };
       }
     }
@@ -210,13 +210,15 @@ class AnthropicWrapper implements IProviderWrapper {
     const validEventTypes = new Set(['message_start', 'content_block_delta', 'message_delta']);
     let messageId: string | undefined;
     messageId = '';
+    let input_tokens: number = 0;
     for await (const item of stream) {
       // Capture the message ID from the first message_start event
       if (item.type === 'message_start') {
         messageId = item.message.id;
+        input_tokens = item.message.usage.input_tokens;
       }
       if (validEventTypes.has(item.type)) {
-        yield this.convertStreamEventToOpenAIChunk(item, model, messageId, includeUsage);
+        yield this.convertStreamEventToOpenAIChunk(item, model, messageId, includeUsage, input_tokens);
       }
     }
   }
