@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 
 import { Stream } from 'openai/streaming';
 
-import { MessageCreateParamsStreaming, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
+import { MessageCreateParamsStreaming, MessageCreateParamsNonStreaming, MessageCreateParams } from '@anthropic-ai/sdk/resources';
 
 import { EnrichedModelList, IProviderWrapper, ModelList, StandardModelList } from '../../types';
 import {
@@ -179,13 +179,12 @@ class AnthropicWrapper implements IProviderWrapper {
         {
           index: 0,
           delta: {
-            content: event.delta.type === 'text_delta' ? event.delta.text : '',
-            tool_calls: [{
-              index: '',
-              function: event.delta.type === 'input_json_delta' ? event.delta.partial_json : undefined,
+            content: event.delta.type === 'text_delta' ? event.delta.text : undefined,
+            tool_calls: event.delta.type === 'input_json_delta' ? [{
+              index: event.index,
+              function: { arguments: event.delta.partial_json },
               type: 'function'      
-            }]
-            // index: event.delta.type === 'input_json_delta' ? event.delta.partial_json : undefined,
+            }] : undefined,
           },
           logprobs: null,
           finish_reason: null
@@ -308,7 +307,7 @@ class AnthropicWrapper implements IProviderWrapper {
     }
   }
   
-  private validateAndGenerateNonStreamingParamsArray(params: HandlerParams): MessageCreateParamsNonStreaming {
+  private validateAndGenerateNonStreamingParamsArray(params: HandlerParams): MessageCreateParams {
     // Validate individual parameters using helper functions
     const maxTokens = this.validateMaxTokens(params.max_tokens);
     const temperature = this.validateTemperature(params.temperature);
@@ -317,7 +316,7 @@ class AnthropicWrapper implements IProviderWrapper {
     const tool_choice = this.convertToolChoiceToAnthropic(params.tool_choice);
 
     // Build the validatedParams object without mutating the input object
-    const validatedParams: MessageCreateParamsNonStreaming = {
+    const validatedParams: MessageCreateParams = {
       messages: this.toAnthropicPrompt(params.messages),
       model: params.model,
       max_tokens: maxTokens,
@@ -351,8 +350,9 @@ class AnthropicWrapper implements IProviderWrapper {
     // Validate individual parameters using helper functions
     const maxTokens = this.validateMaxTokens(params.max_tokens);
     const temperature = this.validateTemperature(params.temperature);
-    //const stream = this.validateStreamUsage(params.stream, params.tools);
+    const tools = this.validateTools(params.tools);
     const system = this.extractSystemMessageContent(params.messages);
+    const tool_choice = this.convertToolChoiceToAnthropic(params.tool_choice);
   
     // Build the validatedParams object without mutating the input object
     const validatedParams: MessageCreateParamsStreaming = {
@@ -360,8 +360,10 @@ class AnthropicWrapper implements IProviderWrapper {
       model: params.model,
       max_tokens: maxTokens,
       stream: true,
+      ...(tools !== undefined && { tools }), // only add tools if it's defined
       ...(temperature !== undefined && { temperature }), // only add temperature if it's defined
       ...(system !== undefined && { system }), // only add system prompt if it's defined
+      ...(tool_choice !== undefined && { tool_choice }), // only add tool_choice if it's defined
     };
   
     // Copy other optional parameters if they are defined
