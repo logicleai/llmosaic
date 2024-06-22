@@ -178,7 +178,15 @@ class AnthropicWrapper implements IProviderWrapper {
       chunk.choices = [
         {
           index: 0,
-          delta: { content: event.delta.type === 'text_delta' ? event.delta.text : '' },
+          delta: {
+            content: event.delta.type === 'text_delta' ? event.delta.text : '',
+            tool_calls: [{
+              index: '',
+              function: event.delta.type === 'input_json_delta' ? event.delta.partial_json : undefined,
+              type: 'function'      
+            }]
+            // index: event.delta.type === 'input_json_delta' ? event.delta.partial_json : undefined,
+          },
           logprobs: null,
           finish_reason: null
         }
