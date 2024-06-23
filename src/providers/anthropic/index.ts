@@ -69,6 +69,8 @@ class AnthropicWrapper implements IProviderWrapper {
       return 'length'
     } else if (anthropicStopReason == 'end_turn') {
       return 'stop'
+    } else if (anthropicStopReason == 'tool_use') {
+      return 'stop'
     } else {
       return null
     }
@@ -166,7 +168,7 @@ class AnthropicWrapper implements IProviderWrapper {
       chunk.choices = [
         {
           index: 0,
-          delta: { role: 'assistant', content: ''},
+          delta: { role: 'assistant', content: null},
           logprobs: null,
           finish_reason: null
         }
