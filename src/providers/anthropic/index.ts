@@ -119,17 +119,18 @@ class AnthropicWrapper implements IProviderWrapper {
     }
     return {
       id: anthropicResponse.id,
-      model: anthropicResponse.model,
       object: 'chat.completion',
       created: getUnixTimestamp(),
+      model: anthropicResponse.model,
+      choices: [
+        basicChoice
+      ],
       usage: {
         prompt_tokens: anthropicResponse.usage.input_tokens,
         completion_tokens: anthropicResponse.usage.output_tokens,
         total_tokens: (anthropicResponse.usage.input_tokens + anthropicResponse.usage.output_tokens)
       },
-      choices: [
-        basicChoice
-      ],
+      system_fingerprint: undefined
     };
   }
 
