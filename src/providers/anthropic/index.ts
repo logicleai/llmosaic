@@ -158,17 +158,28 @@ class AnthropicWrapper implements IProviderWrapper {
       created: Math.floor(Date.now() / 1000), // Assuming current time for lack of a better reference
       model: model, // We will populate this from the input event
       system_fingerprint: undefined,
-      choices: [], // We will create this from the input event content
-      usage: undefined
+      choices: []
     };
     //console.log(event);
     if (
-      event.type === 'message_start'
+      event.type === 'content_block_start'
     ) {
       chunk.choices = [
         {
           index: 0,
-          delta: { role: 'assistant', content: null},
+          delta: {
+            role: 'assistant',
+            content: null,
+            ...(event.content_block.type === 'tool_use' ? {
+              tool_calls: [{
+                index: event.index,
+                function: {
+                  name: event.content_block.name,
+                  arguments: ''
+                }
+              }]
+            } : {})
+          },
           logprobs: null,
           finish_reason: null
         }
@@ -181,11 +192,10 @@ class AnthropicWrapper implements IProviderWrapper {
         {
           index: 0,
           delta: {
-            content: event.delta.type === 'text_delta' ? event.delta.text : undefined,
+            ...(event.delta.type === 'text_delta' ? { content: event.delta.text } : {}),
             tool_calls: event.delta.type === 'input_json_delta' ? [{
               index: event.index,
-              function: { arguments: event.delta.partial_json },
-              type: 'function'      
+              function: { arguments: event.delta.partial_json }  
             }] : undefined,
           },
           logprobs: null,
@@ -216,7 +226,7 @@ class AnthropicWrapper implements IProviderWrapper {
   }
 
   private async* internalIterator(stream: AsyncIterable<Anthropic.Messages.MessageStreamEvent>, model: string, includeUsage: boolean): AsyncIterator<OpenAI.Chat.Completions.ChatCompletionChunk> {
-    const validEventTypes = new Set(['message_start', 'content_block_delta', 'message_delta']);
+    const validEventTypes = new Set(['content_block_start', 'content_block_delta', 'message_delta']);
     let messageId: string | undefined;
     messageId = '';
     let input_tokens: number = 0;
