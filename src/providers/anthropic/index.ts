@@ -307,7 +307,7 @@ class AnthropicWrapper implements IProviderWrapper {
     }
   }
   
-  private validateAndGenerateNonStreamingParamsArray(params: HandlerParams): MessageCreateParams {
+  private validateAndGenerateNonStreamingParamsArray(params: HandlerParams): MessageCreateParamsNonStreaming {
     // Validate individual parameters using helper functions
     const maxTokens = this.validateMaxTokens(params.max_tokens);
     const temperature = this.validateTemperature(params.temperature);
